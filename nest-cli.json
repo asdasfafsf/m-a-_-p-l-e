@@ -5,7 +5,14 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "apps/gateway/tsconfig.app.json"
+    "tsConfigPath": "apps/gateway/tsconfig.app.json",
+    "assets": [
+      {
+        "include": "../.env.local",
+        "outDir": "dist/apps/gateway/.env.local",
+        "watchAssets": true
+      }
+    ]
   },
   "monorepo": true,
   "root": "apps/gateway",
@@ -16,7 +23,14 @@
       "entryFile": "main",
       "sourceRoot": "apps/gateway/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/gateway/tsconfig.app.json"
+        "tsConfigPath": "apps/gateway/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "../.env.local",
+            "outDir": "dist/apps/gateway/.env.local",
+            "watchAssets": true
+          }
+        ]
       }
     }
   }

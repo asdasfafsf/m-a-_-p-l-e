@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
-import { validationSchema } from './config/validationSchema';
-import { JwtConfig } from './config/jwtConfig';
-import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { MongooseModule } from '@nestjs/mongoose';
+import { JwtConfig } from './config/jwtConfig';
 import { MongooseConfig } from './config/mongooseConfig';
+import { validationSchema } from './config/validationSchema';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -29,7 +29,7 @@ import { MongooseConfig } from './config/mongooseConfig';
       ],
     }),
     AuthModule,
-    UserModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

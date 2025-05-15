@@ -4,6 +4,6 @@
     "declaration": false,
     "outDir": "../../dist/apps/gateway"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", ".env.local"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }

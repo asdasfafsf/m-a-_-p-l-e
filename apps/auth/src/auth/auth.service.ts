@@ -3,7 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { Role } from '../common/types/role.type';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user-dto';
@@ -15,17 +15,14 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  async generateJwtToken({
-    uuid,
-    role,
-    jwtOptions,
-  }: {
-    uuid: string;
-    role: Role;
-    jwtOptions?: JwtSignOptions;
-  }) {
-    const payload = { sub: uuid, role };
-    return this.jwtService.signAsync(payload, jwtOptions);
+  async generateAccessToken({ sub, role }: { sub: string; role?: Role }) {
+    const payload = { sub, role };
+    return this.jwtService.signAsync(payload);
+  }
+
+  async generateRefreshToken({ sub }: { sub: string }) {
+    const payload = { sub };
+    return this.jwtService.signAsync(payload, { expiresIn: '7d' });
   }
 
   async login({ email, password }: { email: string; password: string }) {
@@ -44,9 +41,19 @@ export class AuthService {
     }
 
     const { uuid, role } = user;
-    const access_token = await this.generateJwtToken({ uuid, role });
+    const access_token = await this.generateAccessToken({ sub: uuid, role });
+    const refresh_token = await this.generateRefreshToken({ sub: uuid });
 
-    return { access_token };
+    const isRefreshTokenSaved = await this.usersService.saveRefreshToken({
+      uuid,
+      refreshToken: refresh_token,
+    });
+
+    if (!isRefreshTokenSaved) {
+      throw new UnauthorizedException('Failed to save refresh token');
+    }
+
+    return { access_token, refresh_token };
   }
 
   async signup(createUserDto: CreateUserDto) {
@@ -60,8 +67,7 @@ export class AuthService {
 
     const user = await this.usersService.createUser(createUserDto);
     const { email, uuid, role } = user;
-    const token = await this.generateJwtToken({ uuid, role });
 
-    return { email, uuid, role, token };
+    return { email, uuid, role };
   }
 }

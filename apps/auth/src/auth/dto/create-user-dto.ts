@@ -1,5 +1,6 @@
 import { IsEmail, IsIn, IsNotEmpty, IsString, Matches } from 'class-validator';
 import { ROLE_MAP } from '../../common/constants/role.constant';
+import { Role } from '../../common/types/role.type';
 
 export class CreateUserDto {
   @IsEmail()
@@ -18,6 +19,6 @@ export class CreateUserDto {
   password: string;
 
   @IsNotEmpty()
-  @IsIn(Object.values(ROLE_MAP))
-  role: string;
+  @IsIn(Object.values(ROLE_MAP), { each: true })
+  roles: Role[];
 }

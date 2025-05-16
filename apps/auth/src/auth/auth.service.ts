@@ -27,8 +27,8 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  async generateAccessToken({ sub, role }: { sub: string; role?: Role }) {
-    const payload = { sub, role };
+  async generateAccessToken({ sub, roles }: { sub: string; roles?: Role[] }) {
+    const payload = { sub, roles };
     return await this.jwtService.signAsync(payload);
   }
 
@@ -54,8 +54,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const { uuid, role } = user;
-    const access_token = await this.generateAccessToken({ sub: uuid, role });
+    const { uuid, roles } = user;
+    const access_token = await this.generateAccessToken({ sub: uuid, roles });
     const { token: newRefreshToken, jtl } = await this.generateRefreshToken({
       sub: uuid,
     });
@@ -81,11 +81,11 @@ export class AuthService {
         throw new MapleInvalidTokenException();
       }
 
-      const { uuid, role } = user;
+      const { uuid, roles } = user;
 
       const newAccessToken = await this.generateAccessToken({
         sub: uuid,
-        role,
+        roles,
       });
       const { token: newRefreshToken, jtl } = await this.generateRefreshToken({
         sub: uuid,
@@ -130,8 +130,8 @@ export class AuthService {
     }
 
     const user = await this.usersService.createUser(createUserDto);
-    const { email, uuid, role } = user;
+    const { email, uuid, roles } = user;
 
-    return { email, uuid, role };
+    return { email, uuid, roles };
   }
 }

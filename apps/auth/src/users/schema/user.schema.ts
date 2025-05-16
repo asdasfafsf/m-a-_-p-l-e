@@ -16,8 +16,8 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ required: true, type: String, enum: Object.values(ROLE_MAP) })
-  role: Role;
+  @Prop({ required: true, type: [String], enum: Object.values(ROLE_MAP) })
+  roles: Role[];
 
   @Prop({ required: true, default: new Date() })
   createdAt: Date;

@@ -23,7 +23,7 @@ describe('AuthService', () => {
     email: 'test@example.com',
     password: 'hashedPassword123',
     uuid: '123e4567-e89b-12d3-a456-426614174000',
-    role: ROLE_MAP.USER,
+    roles: [ROLE_MAP.USER],
     jtl: 'current-jtl',
   };
 
@@ -59,7 +59,7 @@ describe('AuthService', () => {
 
   describe('액세스 토큰 생성', () => {
     it('액세스 토큰을 생성해야 함', async () => {
-      const payload = { sub: mockUser.uuid, role: mockUser.role };
+      const payload = { sub: mockUser.uuid, roles: mockUser.roles };
       const expectedToken = 'access-token';
 
       jwtServiceMock.signAsync.mockResolvedValue(expectedToken);
@@ -263,12 +263,12 @@ describe('AuthService', () => {
       const createUserDto = {
         email: 'new@example.com',
         password: 'Password123!',
-        role: ROLE_MAP.USER,
+        roles: [ROLE_MAP.USER],
       };
       const createdUser = {
         email: createUserDto.email,
         uuid: 'new-uuid',
-        role: createUserDto.role,
+        roles: createUserDto.roles,
       };
 
       usersServiceMock.findUserByEmail.mockResolvedValue(null);
@@ -287,7 +287,7 @@ describe('AuthService', () => {
       const createUserDto = {
         email: mockUser.email,
         password: 'Password123!',
-        role: ROLE_MAP.USER,
+        roles: [ROLE_MAP.USER],
       };
 
       usersServiceMock.findUserByEmail.mockResolvedValue(mockUser);

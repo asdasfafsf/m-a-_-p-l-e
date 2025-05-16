@@ -31,7 +31,7 @@ export class UsersService {
 
   async createUser(
     createUserDto: CreateUserDto,
-  ): Promise<Pick<User, 'email' | 'uuid' | 'role'>> {
+  ): Promise<Pick<User, 'email' | 'uuid' | 'roles'>> {
     const { email, password } = createUserDto;
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -42,8 +42,8 @@ export class UsersService {
         password: hashedPassword,
       });
 
-      const { uuid, role } = user.toObject();
-      return { email: user.email, uuid, role };
+      const { uuid, roles } = user.toObject();
+      return { email: user.email, uuid, roles };
     } catch {
       throw new InternalServerErrorException('Failed to create user');
     }
@@ -53,20 +53,20 @@ export class UsersService {
     uuid: string,
   ): Promise<Pick<
     User,
-    'email' | 'password' | 'uuid' | 'role' | 'jtl'
+    'email' | 'password' | 'uuid' | 'jtl' | 'roles'
   > | null> {
     return this.userModel
       .findOne({ uuid })
-      .select('email password uuid role jtl')
+      .select('email password uuid jtl roles')
       .lean();
   }
 
   async findUserByEmail(
     email: string,
-  ): Promise<Pick<User, 'email' | 'password' | 'uuid' | 'role'> | null> {
+  ): Promise<Pick<User, 'email' | 'password' | 'uuid' | 'roles'> | null> {
     return this.userModel
       .findOne({ email })
-      .select('email password uuid role')
+      .select('email password uuid roles')
       .lean();
   }
 
@@ -95,14 +95,14 @@ export class UsersService {
 
   async updateRole({
     uuid,
-    role,
+    roles,
   }: {
     uuid: string;
-    role: Role;
+    roles: Role[];
   }): Promise<void> {
     const result = await this.userModel.updateOne(
       { uuid },
-      { $set: { role: role } },
+      { $set: { roles: roles } },
     );
 
     if (result.matchedCount === 0) {
@@ -132,7 +132,7 @@ export class UsersService {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .select('uuid email role createdAt updatedAt -_id')
+        .select('uuid email roles createdAt updatedAt -_id')
         .lean(),
       this.userModel.countDocuments(queryFilter),
     ]);

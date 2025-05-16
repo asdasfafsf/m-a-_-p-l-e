@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { CreateUserDto } from '../auth/dto/create-user-dto';
+import { PageDto } from '../common/dto/page.dto';
 import { MapleHttpException } from '../common/errors/MapleHttpException';
 import { UndefinedException } from '../common/errors/UndefinedException';
 import {
@@ -15,6 +16,8 @@ import {
   ERROR_MESSAGE_MAP,
 } from '../common/errors/constants/error.constant';
 import { Role } from '../common/types/role.type';
+import { FindManyUsersDto } from './dto/find-many-users.dto';
+import { InquiryUserDto } from './dto/inquiry-user.dto';
 import { NotFoundUserException } from './errors/NotFoundUserException';
 import { User, UserDocument } from './schema/user.schema';
 @Injectable()
@@ -109,6 +112,39 @@ export class UsersService {
     if (result.modifiedCount === 0) {
       throw new UndefinedException();
     }
+  }
+
+  async findManyUsers(dto: FindManyUsersDto): Promise<
+    {
+      users: InquiryUserDto[];
+    } & PageDto
+  > {
+    const { page = 1, limit = 10, roles } = dto;
+    const queryFilter: any = {};
+    if (roles && roles.length > 0) {
+      queryFilter.role = { $in: roles };
+    }
+    const skip = (page - 1) * limit;
+
+    const [users, totalCount] = await Promise.all([
+      this.userModel
+        .find(queryFilter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select('uuid email role createdAt updatedAt -_id')
+        .lean(),
+      this.userModel.countDocuments(queryFilter),
+    ]);
+
+    const totalPage = Math.ceil(totalCount / limit);
+
+    return {
+      users,
+      totalCount,
+      totalPage,
+      currentPage: page,
+    };
   }
 
   async validatePassword(

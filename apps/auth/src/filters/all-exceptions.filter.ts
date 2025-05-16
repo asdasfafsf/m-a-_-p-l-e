@@ -34,16 +34,31 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return;
     }
 
-    const message =
-      exception instanceof HttpException
-        ? exception.getResponse()
-        : '정의되지 않은 오류입니다.';
+    if (exception instanceof HttpException) {
+      const message = (exception.getResponse() as any).message;
 
-    const responseBody = {
+      if (typeof message === 'string') {
+        response.status(status).json({
+          code: 'ERROR',
+          message,
+        } as MapleError);
+
+        return;
+      }
+
+      if (Array.isArray(message)) {
+        response.status(status).json({
+          code: 'ERROR',
+          message: message[0],
+        } as MapleError);
+
+        return;
+      }
+    }
+
+    response.status(status).json({
       code: 'ERROR',
-      message,
-    } as MapleError;
-
-    response.status(status).json(responseBody);
+      message: '정의되지 않은 오류입니다.',
+    });
   }
 }

@@ -26,7 +26,7 @@ export class User {
   updatedAt: Date;
 
   @Prop({ required: false })
-  refreshToken: string;
+  jtl: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

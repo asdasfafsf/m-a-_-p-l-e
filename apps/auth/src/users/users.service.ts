@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -7,6 +8,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { CreateUserDto } from '../auth/dto/create-user-dto';
+import { MapleHttpException } from '../common/errors/MapleHttpException';
+import {
+  ERROR_CODE_MAP,
+  ERROR_MESSAGE_MAP,
+} from '../common/errors/constants/error.constant';
 import { User, UserDocument } from './schema/user.schema';
 
 @Injectable()
@@ -38,6 +44,18 @@ export class UsersService {
     }
   }
 
+  async findUserByUuid(
+    uuid: string,
+  ): Promise<Pick<
+    User,
+    'email' | 'password' | 'uuid' | 'role' | 'jtl'
+  > | null> {
+    return this.userModel
+      .findOne({ uuid })
+      .select('email password uuid role jtl')
+      .lean();
+  }
+
   async findUserByEmail(
     email: string,
   ): Promise<Pick<User, 'email' | 'password' | 'uuid' | 'role'> | null> {
@@ -49,22 +67,31 @@ export class UsersService {
 
   async saveRefreshToken({
     uuid,
-    refreshToken,
+    jtl,
   }: {
     uuid: string;
-    refreshToken: string;
-  }): Promise<boolean> {
+    jtl: string;
+  }): Promise<void> {
     const result = await this.userModel.updateOne(
       { uuid },
-      { $set: { refreshToken } },
+      { $set: { jtl: jtl } },
     );
-    return result.modifiedCount > 0;
+
+    if (result.modifiedCount === 0) {
+      throw new MapleHttpException(
+        {
+          code: ERROR_CODE_MAP.ERROR,
+          message: ERROR_MESSAGE_MAP.ERROR,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async validatePassword(
     password: string,
     hashedPassword: string,
   ): Promise<boolean> {
-    return bcrypt.compare(password, hashedPassword);
+    return await bcrypt.compare(password, hashedPassword);
   }
 }

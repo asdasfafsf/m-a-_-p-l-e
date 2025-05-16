@@ -1,124 +1,154 @@
 // auth.service.spec.ts
-import { UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ROLE_MAP } from '../common/constants/role.constant';
+import { MapleHttpException } from '../common/errors/MapleHttpException';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { MapleInvalidTokenException } from './errors/MapleInvalidTokenException';
+import { MapleTokenExpiredExcetion } from './errors/MapleTokenExpiredException';
+
+// uuidv7 모듈 모킹
+jest.mock('uuidv7', () => ({
+  uuidv4: jest.fn().mockReturnValue('mocked-jtl'),
+  uuidv7: jest.fn().mockReturnValue('mocked-jtl'),
+}));
 
 describe('AuthService', () => {
   let service: AuthService;
 
+  // 테스트용 목 데이터
   const mockUser = {
     email: 'test@example.com',
     password: 'hashedPassword123',
     uuid: '123e4567-e89b-12d3-a456-426614174000',
     role: ROLE_MAP.USER,
+    jtl: 'current-jtl',
   };
 
-  const mockJwtService = {
+  // 모킹 객체 설정
+  const jwtServiceMock = {
     signAsync: jest.fn(),
+    verify: jest.fn(),
   };
 
-  const mockUsersService = {
+  const usersServiceMock = {
     findUserByEmail: jest.fn(),
+    findUserByUuid: jest.fn(),
     validatePassword: jest.fn(),
     createUser: jest.fn(),
     saveRefreshToken: jest.fn(),
   };
 
   beforeEach(async () => {
+    // 테스트용 모듈 생성
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        {
-          provide: JwtService,
-          useValue: mockJwtService,
-        },
-        {
-          provide: UsersService,
-          useValue: mockUsersService,
-        },
+        { provide: JwtService, useValue: jwtServiceMock },
+        { provide: UsersService, useValue: usersServiceMock },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
+
+    // 모킹 초기화
+    jest.clearAllMocks();
   });
 
-  describe('토큰 생성', () => {
-    it('Access 토큰을 생성해야 함', async () => {
+  describe('액세스 토큰 생성', () => {
+    it('액세스 토큰을 생성해야 함', async () => {
       const payload = { sub: mockUser.uuid, role: mockUser.role };
       const expectedToken = 'access-token';
 
-      mockJwtService.signAsync.mockResolvedValue(expectedToken);
+      jwtServiceMock.signAsync.mockResolvedValue(expectedToken);
 
       const result = await service.generateAccessToken(payload);
 
-      expect(mockJwtService.signAsync).toHaveBeenCalledWith(payload);
+      expect(jwtServiceMock.signAsync).toHaveBeenCalledWith(payload);
       expect(result).toBe(expectedToken);
     });
+  });
 
-    it('Refresh 토큰을 생성해야 함', async () => {
+  describe('리프레시 토큰 생성', () => {
+    it('JTL이 포함된 리프레시 토큰을 생성해야 함', async () => {
       const payload = { sub: mockUser.uuid };
       const expectedToken = 'refresh-token';
 
-      mockJwtService.signAsync.mockResolvedValue(expectedToken);
+      jwtServiceMock.signAsync.mockResolvedValue(expectedToken);
 
       const result = await service.generateRefreshToken(payload);
 
-      expect(mockJwtService.signAsync).toHaveBeenCalledWith(payload, {
-        expiresIn: '7d',
+      expect(jwtServiceMock.signAsync).toHaveBeenCalledWith(
+        { sub: payload.sub, jtl: 'mocked-jtl' },
+        { expiresIn: '7d' },
+      );
+      expect(result).toEqual({
+        token: expectedToken,
+        jtl: 'mocked-jtl',
       });
-      expect(result).toBe(expectedToken);
     });
   });
 
   describe('로그인', () => {
-    it('유효한 자격증명으로 토큰을 반환해야 함', async () => {
+    it('로그인 성공 시 토큰을 반환해야 함', async () => {
       const loginDto = {
         email: mockUser.email,
         password: 'password123',
       };
       const expectedTokens = {
-        access_token: 'access-token',
-        refresh_token: 'refresh-token',
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
       };
 
-      mockUsersService.findUserByEmail.mockResolvedValue(mockUser);
-      mockUsersService.validatePassword.mockResolvedValue(true);
-      mockJwtService.signAsync
-        .mockResolvedValueOnce(expectedTokens.access_token)
-        .mockResolvedValueOnce(expectedTokens.refresh_token);
-      mockUsersService.saveRefreshToken.mockResolvedValue(true);
+      usersServiceMock.findUserByEmail.mockResolvedValue(mockUser);
+      usersServiceMock.validatePassword.mockResolvedValue(true);
+      jwtServiceMock.signAsync
+        .mockResolvedValueOnce(expectedTokens.accessToken)
+        .mockResolvedValueOnce(expectedTokens.refreshToken);
+      usersServiceMock.saveRefreshToken.mockResolvedValue(undefined);
 
       const result = await service.login(loginDto);
 
-      expect(mockUsersService.findUserByEmail).toHaveBeenCalledWith(
+      expect(usersServiceMock.findUserByEmail).toHaveBeenCalledWith(
         loginDto.email,
       );
-      expect(mockUsersService.validatePassword).toHaveBeenCalledWith(
+      expect(usersServiceMock.validatePassword).toHaveBeenCalledWith(
         loginDto.password,
         mockUser.password,
       );
-      expect(mockUsersService.saveRefreshToken).toHaveBeenCalledWith({
+      expect(usersServiceMock.saveRefreshToken).toHaveBeenCalledWith({
         uuid: mockUser.uuid,
-        refreshToken: expectedTokens.refresh_token,
+        jtl: 'mocked-jtl',
       });
-      expect(result).toEqual(expectedTokens);
+      expect(result).toEqual({
+        accessToken: expectedTokens.accessToken,
+        refreshToken: expectedTokens.refreshToken,
+      });
     });
 
-    it('리프레시 토큰 저장 실패 시 UnauthorizedException을 발생시켜야 함', async () => {
+    it('잘못된 이메일로 UnauthorizedException을 발생시켜야 함', async () => {
       const loginDto = {
-        email: mockUser.email,
+        email: 'wrong@example.com',
         password: 'password123',
       };
 
-      mockUsersService.findUserByEmail.mockResolvedValue(mockUser);
-      mockUsersService.validatePassword.mockResolvedValue(true);
-      mockJwtService.signAsync
-        .mockResolvedValueOnce('access-token')
-        .mockResolvedValueOnce('refresh-token');
-      mockUsersService.saveRefreshToken.mockResolvedValue(false);
+      usersServiceMock.findUserByEmail.mockResolvedValue(null);
+
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('잘못된 비밀번호로 UnauthorizedException을 발생시켜야 함', async () => {
+      const loginDto = {
+        email: mockUser.email,
+        password: 'wrong-password',
+      };
+
+      usersServiceMock.findUserByEmail.mockResolvedValue(mockUser);
+      usersServiceMock.validatePassword.mockResolvedValue(false);
 
       await expect(service.login(loginDto)).rejects.toThrow(
         UnauthorizedException,
@@ -126,25 +156,145 @@ describe('AuthService', () => {
     });
   });
 
-  describe('회원가입', () => {
-    it('새로운 사용자를 생성하고 사용자 정보를 반환해야 함', async () => {
-      const createUserDto = {
-        email: mockUser.email,
-        password: 'password123',
-        role: mockUser.role,
+  describe('토큰 갱신', () => {
+    it('유효한 리프레시 토큰으로 새 토큰을 발급해야 함', async () => {
+      const refreshToken = 'valid-refresh-token';
+      const decoded = { sub: mockUser.uuid, jtl: mockUser.jtl };
+      const newTokens = {
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
       };
 
-      mockUsersService.findUserByEmail.mockResolvedValue(null);
-      mockUsersService.createUser.mockResolvedValue(mockUser);
+      jwtServiceMock.verify.mockReturnValue(decoded);
+      usersServiceMock.findUserByUuid.mockResolvedValue(mockUser);
+      jwtServiceMock.signAsync
+        .mockResolvedValueOnce(newTokens.accessToken)
+        .mockResolvedValueOnce(newTokens.refreshToken);
+      usersServiceMock.saveRefreshToken.mockResolvedValue(undefined);
+
+      const result = await service.refresh({ refreshToken });
+
+      expect(jwtServiceMock.verify).toHaveBeenCalledWith(refreshToken);
+      expect(usersServiceMock.findUserByUuid).toHaveBeenCalledWith(decoded.sub);
+      expect(result).toEqual({
+        accessToken: newTokens.accessToken,
+        refreshToken: newTokens.refreshToken,
+      });
+    });
+
+    it('만료된 토큰으로 MapleTokenExpiredException을 발생시켜야 함', async () => {
+      const refreshToken = 'expired-token';
+
+      jwtServiceMock.verify.mockImplementation(() => {
+        throw new TokenExpiredError('Token expired', new Date());
+      });
+
+      await expect(service.refresh({ refreshToken })).rejects.toThrow(
+        MapleTokenExpiredExcetion,
+      );
+    });
+
+    it('유효하지 않은 토큰으로 MapleInvalidTokenException을 발생시켜야 함', async () => {
+      const refreshToken = 'invalid-token';
+
+      jwtServiceMock.verify.mockImplementation(() => {
+        throw new JsonWebTokenError('Invalid token');
+      });
+
+      await expect(service.refresh({ refreshToken })).rejects.toThrow(
+        MapleInvalidTokenException,
+      );
+    });
+
+    it('존재하지 않는 사용자로 MapleInvalidTokenException을 발생시켜야 함', async () => {
+      const refreshToken = 'valid-token';
+      const decoded = { sub: 'non-existent-uuid', jtl: 'some-jtl' };
+
+      jwtServiceMock.verify.mockReturnValue(decoded);
+      usersServiceMock.findUserByUuid.mockResolvedValue(null);
+
+      await expect(service.refresh({ refreshToken })).rejects.toThrow(
+        MapleInvalidTokenException,
+      );
+    });
+
+    it('JTL이 일치하지 않으면 MapleInvalidTokenException을 발생시켜야 함', async () => {
+      const refreshToken = 'valid-token';
+      const decoded = {
+        sub: mockUser.uuid,
+        jtl: 'different-jtl', // 토큰의 JTL
+      };
+
+      // 사용자 객체에는 다른 JTL이 있음
+      const userWithDifferentJtl = {
+        ...mockUser,
+        jtl: 'current-jtl', // DB에 저장된 JTL
+      };
+
+      // 모킹 설정
+      jwtServiceMock.verify.mockReturnValue(decoded);
+      usersServiceMock.findUserByUuid.mockResolvedValue(userWithDifferentJtl);
+
+      // 테스트 실행 및 검증
+      await expect(service.refresh({ refreshToken })).rejects.toThrow(
+        MapleInvalidTokenException,
+      );
+
+      // 호출 검증
+      expect(jwtServiceMock.verify).toHaveBeenCalledWith(refreshToken);
+      expect(usersServiceMock.findUserByUuid).toHaveBeenCalledWith(decoded.sub);
+    });
+
+    it('예상치 못한 에러 발생 시 MapleHttpException을 발생시켜야 함', async () => {
+      const refreshToken = 'valid-token';
+
+      jwtServiceMock.verify.mockImplementation(() => {
+        throw new Error('Unexpected error');
+      });
+
+      await expect(service.refresh({ refreshToken })).rejects.toThrow(
+        MapleHttpException,
+      );
+    });
+  });
+
+  describe('회원가입', () => {
+    it('새로운 사용자를 생성하고 정보를 반환해야 함', async () => {
+      const createUserDto = {
+        email: 'new@example.com',
+        password: 'Password123!',
+        role: ROLE_MAP.USER,
+      };
+      const createdUser = {
+        email: createUserDto.email,
+        uuid: 'new-uuid',
+        role: createUserDto.role,
+      };
+
+      usersServiceMock.findUserByEmail.mockResolvedValue(null);
+      usersServiceMock.createUser.mockResolvedValue(createdUser);
 
       const result = await service.signup(createUserDto);
 
-      expect(mockUsersService.createUser).toHaveBeenCalledWith(createUserDto);
-      expect(result).toEqual({
+      expect(usersServiceMock.findUserByEmail).toHaveBeenCalledWith(
+        createUserDto.email,
+      );
+      expect(usersServiceMock.createUser).toHaveBeenCalledWith(createUserDto);
+      expect(result).toEqual(createdUser);
+    });
+
+    it('이미 존재하는 이메일로 ConflictException을 발생시켜야 함', async () => {
+      const createUserDto = {
         email: mockUser.email,
-        uuid: mockUser.uuid,
-        role: mockUser.role,
-      });
+        password: 'Password123!',
+        role: ROLE_MAP.USER,
+      };
+
+      usersServiceMock.findUserByEmail.mockResolvedValue(mockUser);
+
+      await expect(service.signup(createUserDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 });

@@ -33,7 +33,7 @@ describe('UsersService', () => {
       // 준비
       const updateRoleDto = {
         uuid: '123e4567-e89b-12d3-a456-426614174000',
-        role: ROLE_MAP.ADMIN,
+        roles: [ROLE_MAP.ADMIN],
       };
 
       mockUserModel.updateOne.mockResolvedValue({
@@ -47,7 +47,7 @@ describe('UsersService', () => {
       // 검증
       expect(mockUserModel.updateOne).toHaveBeenCalledWith(
         { uuid: updateRoleDto.uuid },
-        { $set: { role: updateRoleDto.role } },
+        { $set: { roles: updateRoleDto.roles } },
       );
     });
 
@@ -55,7 +55,7 @@ describe('UsersService', () => {
       // 준비
       const updateRoleDto = {
         uuid: 'non-existent-uuid',
-        role: ROLE_MAP.ADMIN,
+        roles: [ROLE_MAP.ADMIN],
       };
 
       mockUserModel.updateOne.mockResolvedValue({
@@ -73,7 +73,7 @@ describe('UsersService', () => {
       // 준비
       const updateRoleDto = {
         uuid: '123e4567-e89b-12d3-a456-426614174000',
-        role: ROLE_MAP.ADMIN,
+        roles: [ROLE_MAP.ADMIN],
       };
 
       mockUserModel.updateOne.mockResolvedValue({

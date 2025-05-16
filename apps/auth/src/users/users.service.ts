@@ -9,12 +9,14 @@ import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { CreateUserDto } from '../auth/dto/create-user-dto';
 import { MapleHttpException } from '../common/errors/MapleHttpException';
+import { UndefinedException } from '../common/errors/UndefinedException';
 import {
   ERROR_CODE_MAP,
   ERROR_MESSAGE_MAP,
 } from '../common/errors/constants/error.constant';
+import { Role } from '../common/types/role.type';
+import { NotFoundUserException } from './errors/NotFoundUserException';
 import { User, UserDocument } from './schema/user.schema';
-
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -85,6 +87,27 @@ export class UsersService {
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async updateRole({
+    uuid,
+    role,
+  }: {
+    uuid: string;
+    role: Role;
+  }): Promise<void> {
+    const result = await this.userModel.updateOne(
+      { uuid },
+      { $set: { role: role } },
+    );
+
+    if (result.matchedCount === 0) {
+      throw new NotFoundUserException();
+    }
+
+    if (result.modifiedCount === 0) {
+      throw new UndefinedException();
     }
   }
 

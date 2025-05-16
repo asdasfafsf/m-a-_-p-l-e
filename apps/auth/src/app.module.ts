@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { join } from 'path';
 import { AppController } from './app.controller';
@@ -8,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtConfig } from './config/jwtConfig';
 import { MongooseConfig } from './config/mongooseConfig';
 import { validationSchema } from './config/validationSchema';
+import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -32,6 +34,9 @@ import { UsersModule } from './users/users.module';
     UsersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+  ],
 })
 export class AppModule {}

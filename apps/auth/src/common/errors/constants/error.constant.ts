@@ -3,6 +3,8 @@ export const ERROR_CODE_MAP = {
   INVALID_TOKEN: 'INVALID_TOKEN',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   ERROR: 'ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  NOT_FOUND_USER: 'NOT_FOUND_USER',
 } as const;
 
 export const ERROR_MESSAGE_MAP = {
@@ -10,4 +12,6 @@ export const ERROR_MESSAGE_MAP = {
   [ERROR_CODE_MAP.INVALID_TOKEN]: '유효하지 않은 토큰입니다.',
   [ERROR_CODE_MAP.TOKEN_EXPIRED]: '토큰이 만료되었습니다.',
   [ERROR_CODE_MAP.ERROR]: '오류가 발생했습니다.',
+  [ERROR_CODE_MAP.NOT_FOUND]: '존재하지 않는 리소스입니다.',
+  [ERROR_CODE_MAP.NOT_FOUND_USER]: '존재하지 않는 유저입니다.',
 } as const;

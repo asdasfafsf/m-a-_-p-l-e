@@ -1,0 +1,13 @@
+export const ERROR_CODE_MAP = {
+  INVALID_CREDENTIAL: 'INVALID_CREDENTIAL',
+  INVALID_TOKEN: 'INVALID_TOKEN',
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  ERROR: 'ERROR',
+} as const;
+
+export const ERROR_MESSAGE_MAP = {
+  [ERROR_CODE_MAP.INVALID_CREDENTIAL]: '유저 정보가 일치하지 않습니다.',
+  [ERROR_CODE_MAP.INVALID_TOKEN]: '유효하지 않은 토큰입니다.',
+  [ERROR_CODE_MAP.TOKEN_EXPIRED]: '토큰이 만료되었습니다.',
+  [ERROR_CODE_MAP.ERROR]: '오류가 발생했습니다.',
+} as const;

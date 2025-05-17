@@ -1,13 +1,9 @@
-import {
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { CreateUserDto } from '../auth/dto/create-user-dto';
+import { ConflictEmailException } from '../auth/errors/ConflictEmailException';
 import { PageDto } from '../common/dto/page.dto';
 import { MapleHttpException } from '../common/errors/MapleHttpException';
 import { UndefinedException } from '../common/errors/UndefinedException';
@@ -32,7 +28,7 @@ export class UsersService {
   async createUser(
     createUserDto: CreateUserDto,
   ): Promise<Pick<User, 'email' | 'uuid' | 'roles'>> {
-    const { email, password } = createUserDto;
+    const { email, password, roles } = createUserDto;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -40,12 +36,19 @@ export class UsersService {
       const user = await this.userModel.create({
         email,
         password: hashedPassword,
+        roles,
       });
 
-      const { uuid, roles } = user.toObject();
-      return { email: user.email, uuid, roles };
-    } catch {
-      throw new InternalServerErrorException('Failed to create user');
+      const { uuid } = user.toObject();
+      return { email: user.email, uuid, roles: user.roles };
+    } catch (error) {
+      if (error.code === 11000 && error.keyPattern?.email) {
+        this.logger.warn(`Email already exists`);
+        throw new ConflictEmailException();
+      }
+
+      this.logger.error('Failed to create user', error);
+      throw new UndefinedException();
     }
   }
 

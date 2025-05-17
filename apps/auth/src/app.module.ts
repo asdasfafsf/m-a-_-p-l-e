@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { join } from 'path';
+import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -10,8 +11,8 @@ import { JwtConfig } from './config/jwtConfig';
 import { MongooseConfig } from './config/mongooseConfig';
 import { validationSchema } from './config/validationSchema';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { ApiResponseInterceptor } from './interceptopr/api-response.interceptor';
 import { UsersModule } from './users/users.module';
-import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AdminModule } from './admin/admin.module';
   controllers: [AppController],
   providers: [
     AppService,
+    { provide: APP_INTERCEPTOR, useClass: ApiResponseInterceptor },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })

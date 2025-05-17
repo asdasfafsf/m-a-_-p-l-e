@@ -3,6 +3,8 @@ import { HydratedDocument } from 'mongoose';
 import { uuidv7 } from 'uuidv7';
 import { ROLE_MAP } from '../../common/constants/role.constant';
 import { Role } from '../../common/types/role.type';
+import { USER_STATE_MAP } from '../constants/user.constant';
+import { UserState } from '../types/user.type';
 export type UserDocument = HydratedDocument<User>;
 
 @Schema()
@@ -27,6 +29,14 @@ export class User {
 
   @Prop({ required: false })
   jtl: string;
+
+  @Prop({
+    required: true,
+    type: String,
+    enum: Object.values(USER_STATE_MAP),
+    default: USER_STATE_MAP.ACTIVE,
+  })
+  state: UserState;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

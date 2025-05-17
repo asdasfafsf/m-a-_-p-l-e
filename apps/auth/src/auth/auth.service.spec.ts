@@ -4,10 +4,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LOGIN_FAIL_REASON_MAP } from '../common/constants/login-fail.constant';
 import { ROLE_MAP } from '../common/constants/role.constant';
 import { MapleHttpException } from '../common/errors/MapleHttpException';
+import { USER_STATE_MAP } from '../users/constants/user.constant';
 import { UsersLogService } from '../users/users-log.service';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { ConflictEmailException } from './errors/ConflictEmailException';
+import { InActiveUserException } from './errors/InActiveUserException';
 import { InvalidEmailException } from './errors/InvalidEmailException';
 import { InvalidPasswordException } from './errors/InvalidPasswordException';
 import { MapleInvalidTokenException } from './errors/MapleInvalidTokenException';
@@ -182,6 +184,22 @@ describe('AuthService', () => {
         success: false,
         failReason: LOGIN_FAIL_REASON_MAP.INVALID_PASSWORD,
       });
+    });
+
+    it('비활성화된 사용자로 InActiveUserException을 발생시켜야 함', async () => {
+      const loginDto = {
+        email: mockUser.email,
+        password: 'password123',
+      };
+
+      usersServiceMock.findUserByEmail.mockResolvedValue({
+        ...mockUser,
+        state: USER_STATE_MAP.INACTIVE,
+      });
+
+      await expect(service.login(loginDto)).rejects.toThrow(
+        InActiveUserException,
+      );
     });
   });
 

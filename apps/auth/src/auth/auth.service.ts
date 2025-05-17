@@ -60,6 +60,8 @@ export class AuthService {
         throw new InActiveUserException();
       }
 
+      userUuid = user.uuid;
+
       const isPasswordValid = await this.usersService.validatePassword(
         password,
         user.password,
@@ -81,7 +83,6 @@ export class AuthService {
       });
 
       success = true;
-      userUuid = uuid;
 
       return { accessToken: access_token, refreshToken: newRefreshToken };
     } finally {
@@ -146,7 +147,7 @@ export class AuthService {
     }
   }
 
-  async signup(createUserDto: CreateUserDto) {
+  async signup(createUserDto: CreateUserDto & { roles: Role[] }) {
     const validateUser = await this.usersService.findUserByEmail(
       createUserDto.email,
     );

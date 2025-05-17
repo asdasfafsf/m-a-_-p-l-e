@@ -27,7 +27,7 @@ export class UsersService {
   ) {}
 
   async createUser(
-    createUserDto: CreateUserDto,
+    createUserDto: CreateUserDto & { roles: Role[] },
   ): Promise<Pick<User, 'email' | 'uuid' | 'roles'>> {
     const { email, password, roles } = createUserDto;
 
@@ -139,7 +139,7 @@ export class UsersService {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .select('uuid email roles createdAt updatedAt -_id')
+        .select('uuid email roles createdAt updatedAt state -_id')
         .lean(),
       this.userModel.countDocuments(queryFilter),
     ]);

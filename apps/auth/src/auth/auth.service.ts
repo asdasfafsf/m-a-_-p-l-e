@@ -9,11 +9,13 @@ import {
 } from '../common/errors/constants/error.constant';
 import { LoginFailReason } from '../common/errors/types/login-fail.type';
 import { Role } from '../common/types/role.type';
+import { USER_STATE_MAP } from '../users/constants/user.constant';
 import { UsersLogService } from '../users/users-log.service';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { RequestRefreshDto } from './dto/request-refresh.dto';
 import { ConflictEmailException } from './errors/ConflictEmailException';
+import { InActiveUserException } from './errors/InActiveUserException';
 import { InvalidEmailException } from './errors/InvalidEmailException';
 import { InvalidPasswordException } from './errors/InvalidPasswordException';
 import { MapleInvalidTokenException } from './errors/MapleInvalidTokenException';
@@ -48,9 +50,14 @@ export class AuthService {
 
     try {
       const user = await this.usersService.findUserByEmail(email);
-      if (!user) {
+      if (!user || user.state === USER_STATE_MAP.DELETED) {
         failReason = LOGIN_FAIL_REASON_MAP.INVALID_EMAIL;
         throw new InvalidEmailException();
+      }
+
+      if (user.state === USER_STATE_MAP.INACTIVE) {
+        failReason = LOGIN_FAIL_REASON_MAP.INACTIVE_USER;
+        throw new InActiveUserException();
       }
 
       const isPasswordValid = await this.usersService.validatePassword(

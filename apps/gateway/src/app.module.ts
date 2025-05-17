@@ -10,6 +10,7 @@ import { JwtConfig } from './config/jwtConfig';
 import { validationSchema } from './config/validationSchema';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { UsersModule } from './users/users.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UsersModule } from './users/users.module';
     }),
     AuthModule,
     UsersModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

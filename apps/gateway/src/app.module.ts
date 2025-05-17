@@ -9,6 +9,7 @@ import { AuthServerConfig } from './config/authServerConfig';
 import { JwtConfig } from './config/jwtConfig';
 import { validationSchema } from './config/validationSchema';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
       ],
     }),
     AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [

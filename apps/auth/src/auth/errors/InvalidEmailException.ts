@@ -4,7 +4,7 @@ import {
 } from '../../common/errors/constants/error.constant';
 import { MapleHttpException } from '../../common/errors/MapleHttpException';
 
-export class MapleInvalidEmailException extends MapleHttpException {
+export class InvalidEmailException extends MapleHttpException {
   constructor() {
     super(
       {

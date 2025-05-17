@@ -32,23 +32,33 @@ export class AllExceptionsFilter implements ExceptionFilter {
       response.status(status).json({
         code,
         message,
+        data: null,
       });
 
       return;
     }
 
     if (exception instanceof HttpException) {
-      const message = (exception.getResponse() as any).message;
+      const exceptionResponse = exception.getResponse();
+      const message =
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : (exceptionResponse as any).message;
+
       let code: ErrorCode = ERROR_CODE_MAP.ERROR;
       if (exception instanceof BadRequestException) {
         code = ERROR_CODE_MAP.INVALID_REQUEST;
       }
 
-      if (typeof message === 'string') {
+      if (
+        typeof message === 'string' ||
+        (message && message.toString() === message)
+      ) {
         response.status(status).json({
           code,
           message,
-        } as MapleError);
+          data: null,
+        });
 
         return;
       }
@@ -57,6 +67,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         response.status(status).json({
           code,
           message: message[0],
+          data: null,
         } as MapleError);
 
         return;
@@ -66,6 +77,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json({
       code: 'ERROR',
       message: '정의되지 않은 오류입니다.',
+      data: null,
     });
   }
 }

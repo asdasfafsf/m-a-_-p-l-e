@@ -16,6 +16,7 @@ import { FindManyUsersDto } from './dto/find-many-users.dto';
 import { InquiryUserDto } from './dto/inquiry-user.dto';
 import { NotFoundUserException } from './errors/NotFoundUserException';
 import { User, UserDocument } from './schema/user.schema';
+import { UserState } from './types/user.type';
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -56,20 +57,23 @@ export class UsersService {
     uuid: string,
   ): Promise<Pick<
     User,
-    'email' | 'password' | 'uuid' | 'jtl' | 'roles'
+    'email' | 'password' | 'uuid' | 'jtl' | 'roles' | 'state'
   > | null> {
     return this.userModel
       .findOne({ uuid })
-      .select('email password uuid jtl roles')
+      .select('email password uuid jtl roles state')
       .lean();
   }
 
   async findUserByEmail(
     email: string,
-  ): Promise<Pick<User, 'email' | 'password' | 'uuid' | 'roles'> | null> {
+  ): Promise<Pick<
+    User,
+    'email' | 'password' | 'uuid' | 'roles' | 'state'
+  > | null> {
     return this.userModel
       .findOne({ email })
-      .select('email password uuid roles')
+      .select('email password uuid roles state')
       .lean();
   }
 
@@ -148,6 +152,23 @@ export class UsersService {
       totalPage,
       currentPage: page,
     };
+  }
+
+  async updateUserState({
+    uuid,
+    state,
+  }: {
+    uuid: string;
+    state: UserState;
+  }): Promise<void> {
+    const result = await this.userModel.updateOne(
+      { uuid },
+      { $set: { state: state } },
+    );
+
+    if (result.matchedCount === 0) {
+      throw new NotFoundUserException();
+    }
   }
 
   async validatePassword(

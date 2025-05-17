@@ -1,5 +1,4 @@
 // auth.service.spec.ts
-import { ConflictException } from '@nestjs/common';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LOGIN_FAIL_REASON_MAP } from '../common/constants/login-fail.constant';
@@ -8,6 +7,7 @@ import { MapleHttpException } from '../common/errors/MapleHttpException';
 import { UsersLogService } from '../users/users-log.service';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { ConflictEmailException } from './errors/ConflictEmailException';
 import { InvalidEmailException } from './errors/InvalidEmailException';
 import { InvalidPasswordException } from './errors/InvalidPasswordException';
 import { MapleInvalidTokenException } from './errors/MapleInvalidTokenException';
@@ -322,7 +322,7 @@ describe('AuthService', () => {
       usersServiceMock.findUserByEmail.mockResolvedValue(mockUser);
 
       await expect(service.signup(createUserDto)).rejects.toThrow(
-        ConflictException,
+        ConflictEmailException,
       );
     });
   });

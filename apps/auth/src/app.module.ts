@@ -12,6 +12,7 @@ import { validationSchema } from './config/validationSchema';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { ApiResponseInterceptor } from './interceptors/api-response.interceptor';
 import { UsersModule } from './users/users.module';
+import { AdminModule } from './admin/admin.module';
 @Module({
   imports: [
     MongooseModule.forRootAsync({
@@ -32,6 +33,7 @@ import { UsersModule } from './users/users.module';
     }),
     AuthModule,
     UsersModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

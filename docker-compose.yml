@@ -29,3 +29,20 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
       MONGO_URI: mongodb://admin:admin123@mongo:27017/?authSource=admin
       MONGO_DB_NAME: maple
+
+  maple-gateway:
+    build:
+      context: .
+      dockerfile: apps/gateway/dockerfile
+    container_name: maple-gateway
+    restart: unless-stopped
+    ports:
+      - '5561:5561'
+    depends_on:
+      - mongo
+    environment:
+      NODE_ENV: prod
+      SERVER_PORT: 5561
+      JWT_SECRET: honeyjam
+      JWT_EXPIRES_IN: 1h
+      AUTH_SERVER_URL: http://maple-auth:5562

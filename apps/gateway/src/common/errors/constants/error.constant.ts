@@ -9,6 +9,7 @@ export const ERROR_CODE_MAP = {
   INVALID_PARAMETER: 'INVALID_PARAMETER',
   INVALID_REQUEST: 'INVALID_REQUEST',
   INACTIVE_USER: 'INACTIVE_USER',
+  FORBIDDEN: 'FORBIDDEN',
 } as const;
 
 export const ERROR_MESSAGE_MAP = {
@@ -22,4 +23,5 @@ export const ERROR_MESSAGE_MAP = {
   [ERROR_CODE_MAP.INVALID_PARAMETER]: '유효하지 않은 파라미터입니다.',
   [ERROR_CODE_MAP.INVALID_REQUEST]: '유효하지 않은 요청입니다.',
   [ERROR_CODE_MAP.INACTIVE_USER]: '비활성화된 유저입니다.',
+  [ERROR_CODE_MAP.FORBIDDEN]: '권한이 없습니다.',
 } as const;

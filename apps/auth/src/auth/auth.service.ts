@@ -3,7 +3,6 @@ import {
   HttpStatus,
   Injectable,
   Logger,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { uuidv4 } from 'uuidv7';
@@ -16,6 +15,8 @@ import { Role } from '../common/types/role.type';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { RequestRefreshDto } from './dto/request-refresh.dto';
+import { InvalidEmailException } from './errors/InvalidEmailException';
+import { InvalidPasswordException } from './errors/InvalidPasswordException';
 import { MapleInvalidTokenException } from './errors/MapleInvalidTokenException';
 import { MapleTokenExpiredExcetion } from './errors/MapleTokenExpiredException';
 @Injectable()
@@ -42,7 +43,7 @@ export class AuthService {
   async login({ email, password }: { email: string; password: string }) {
     const user = await this.usersService.findUserByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new InvalidEmailException();
     }
 
     const isPasswordValid = await this.usersService.validatePassword(
@@ -51,7 +52,7 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new InvalidPasswordException();
     }
 
     const { uuid, roles } = user;

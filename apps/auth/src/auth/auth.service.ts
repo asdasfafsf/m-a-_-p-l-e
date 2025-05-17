@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  HttpStatus,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { uuidv4 } from 'uuidv7';
 import { LOGIN_FAIL_REASON_MAP } from '../common/constants/login-fail.constant';
@@ -18,6 +13,7 @@ import { UsersLogService } from '../users/users-log.service';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { RequestRefreshDto } from './dto/request-refresh.dto';
+import { ConflictEmailException } from './errors/ConflictEmailException';
 import { InvalidEmailException } from './errors/InvalidEmailException';
 import { InvalidPasswordException } from './errors/InvalidPasswordException';
 import { MapleInvalidTokenException } from './errors/MapleInvalidTokenException';
@@ -149,7 +145,7 @@ export class AuthService {
     );
 
     if (validateUser) {
-      throw new ConflictException('User already exists');
+      throw new ConflictEmailException();
     }
 
     const user = await this.usersService.createUser(createUserDto);

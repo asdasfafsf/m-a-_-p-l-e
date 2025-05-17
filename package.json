@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "build:auth": "nest build auth",
+    "build:gateway": "nest build gateway",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

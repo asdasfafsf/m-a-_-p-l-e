@@ -7,7 +7,7 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {
-  @Prop({ required: true, unique: true, default: uuidv7() })
+  @Prop({ required: true, unique: true, default: () => uuidv7() })
   uuid: string;
 
   @Prop({ required: true, unique: true })
@@ -19,10 +19,10 @@ export class User {
   @Prop({ required: true, type: [String], enum: Object.values(ROLE_MAP) })
   roles: Role[];
 
-  @Prop({ required: true, default: new Date() })
+  @Prop({ required: true, default: () => new Date() })
   createdAt: Date;
 
-  @Prop({ required: true, default: new Date() })
+  @Prop({ required: true, default: () => new Date() })
   updatedAt: Date;
 
   @Prop({ required: false })

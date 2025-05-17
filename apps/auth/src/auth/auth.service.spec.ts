@@ -1,11 +1,15 @@
 // auth.service.spec.ts
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { LOGIN_FAIL_REASON_MAP } from '../common/constants/login-fail.constant';
 import { ROLE_MAP } from '../common/constants/role.constant';
 import { MapleHttpException } from '../common/errors/MapleHttpException';
+import { UsersLogService } from '../users/users-log.service';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { InvalidEmailException } from './errors/InvalidEmailException';
+import { InvalidPasswordException } from './errors/InvalidPasswordException';
 import { MapleInvalidTokenException } from './errors/MapleInvalidTokenException';
 import { MapleTokenExpiredExcetion } from './errors/MapleTokenExpiredException';
 
@@ -41,6 +45,10 @@ describe('AuthService', () => {
     saveRefreshToken: jest.fn(),
   };
 
+  const usersLogServiceMock = {
+    insertHistory: jest.fn(),
+  };
+
   beforeEach(async () => {
     // 테스트용 모듈 생성
     const module: TestingModule = await Test.createTestingModule({
@@ -48,6 +56,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: JwtService, useValue: jwtServiceMock },
         { provide: UsersService, useValue: usersServiceMock },
+        { provide: UsersLogService, useValue: usersLogServiceMock },
       ],
     }).compile();
 
@@ -108,6 +117,7 @@ describe('AuthService', () => {
         .mockResolvedValueOnce(expectedTokens.accessToken)
         .mockResolvedValueOnce(expectedTokens.refreshToken);
       usersServiceMock.saveRefreshToken.mockResolvedValue(undefined);
+      usersLogServiceMock.insertHistory.mockResolvedValue(undefined);
 
       const result = await service.login(loginDto);
 
@@ -122,26 +132,38 @@ describe('AuthService', () => {
         uuid: mockUser.uuid,
         jtl: 'mocked-jtl',
       });
+      expect(usersLogServiceMock.insertHistory).toHaveBeenCalledWith({
+        userUuid: mockUser.uuid,
+        success: true,
+        failReason: undefined,
+      });
       expect(result).toEqual({
         accessToken: expectedTokens.accessToken,
         refreshToken: expectedTokens.refreshToken,
       });
     });
 
-    it('잘못된 이메일로 UnauthorizedException을 발생시켜야 함', async () => {
+    it('잘못된 이메일로 InvalidEmailException을 발생시켜야 함', async () => {
       const loginDto = {
         email: 'wrong@example.com',
         password: 'password123',
       };
 
       usersServiceMock.findUserByEmail.mockResolvedValue(null);
+      usersLogServiceMock.insertHistory.mockResolvedValue(undefined);
 
       await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
+        InvalidEmailException,
       );
+
+      expect(usersLogServiceMock.insertHistory).toHaveBeenCalledWith({
+        userUuid: undefined,
+        success: false,
+        failReason: LOGIN_FAIL_REASON_MAP.INVALID_EMAIL,
+      });
     });
 
-    it('잘못된 비밀번호로 UnauthorizedException을 발생시켜야 함', async () => {
+    it('잘못된 비밀번호로 InvalidPasswordException을 발생시켜야 함', async () => {
       const loginDto = {
         email: mockUser.email,
         password: 'wrong-password',
@@ -149,10 +171,17 @@ describe('AuthService', () => {
 
       usersServiceMock.findUserByEmail.mockResolvedValue(mockUser);
       usersServiceMock.validatePassword.mockResolvedValue(false);
+      usersLogServiceMock.insertHistory.mockResolvedValue(undefined);
 
       await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
+        InvalidPasswordException,
       );
+
+      expect(usersLogServiceMock.insertHistory).toHaveBeenCalledWith({
+        userUuid: undefined,
+        success: false,
+        failReason: LOGIN_FAIL_REASON_MAP.INVALID_PASSWORD,
+      });
     });
   });
 

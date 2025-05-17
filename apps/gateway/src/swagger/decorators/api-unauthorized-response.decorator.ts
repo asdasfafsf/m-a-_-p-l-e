@@ -5,17 +5,18 @@ import {
   ERROR_MESSAGE_MAP,
 } from '../../common/errors/constants/error.constant';
 
-export function ApiBadRequestResponse() {
+export function ApiUnauthorizedResponse() {
   return applyDecorators(
     ApiResponse({
-      status: 400,
+      status: 401,
       description: `
-      - ${ERROR_CODE_MAP.INVALID_REQUEST}: ${ERROR_MESSAGE_MAP[ERROR_CODE_MAP.INVALID_REQUEST]}
+      - ${ERROR_CODE_MAP.INVALID_TOKEN}: ${ERROR_MESSAGE_MAP[ERROR_CODE_MAP.INVALID_TOKEN]}
+      - ${ERROR_CODE_MAP.TOKEN_EXPIRED}: ${ERROR_MESSAGE_MAP[ERROR_CODE_MAP.TOKEN_EXPIRED]}
       `,
       schema: {
         example: {
-          code: ERROR_CODE_MAP.INVALID_REQUEST,
-          message: ERROR_MESSAGE_MAP.INVALID_REQUEST,
+          code: ERROR_CODE_MAP.INVALID_TOKEN,
+          message: ERROR_MESSAGE_MAP.INVALID_TOKEN,
           data: null,
         },
       },

@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -13,6 +14,7 @@ import {
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
+import { UpdateEventStateDto } from './dto/update-event-state.dto';
 import { EventService } from './event.service';
 
 @Controller('api/v1/event')
@@ -53,5 +55,14 @@ export class EventController {
     @Param('rewardUuid') rewardUuid: string,
   ) {
     return this.eventService.deleteEventReward({ eventUuid, rewardUuid });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Patch('/:eventUuid/state')
+  async updateEventState(
+    @Param('eventUuid') eventUuid: string,
+    @Body() body: UpdateEventStateDto,
+  ) {
+    return this.eventService.updateEventState({ eventUuid, state: body.state });
   }
 }

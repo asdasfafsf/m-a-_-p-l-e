@@ -9,9 +9,11 @@ import { RegisterEventDto } from './dto/register-event.dto';
 import { EventNotFoundException } from './errors/EventNotFoundException';
 import { EventNotPendingException } from './errors/EventNotPendingException';
 import { EventRewardNotFoundException } from './errors/EventRewardNotFoundException';
+import { EventStateUpdateNotAllowedException } from './errors/EventStateUpdateNotAllowedException';
 import { EventCondition } from './schema/event-condition.schema';
 import { EventReward } from './schema/event-reward.schema';
 import { Event, EventDocument } from './schema/event.schema';
+import { EventState } from './types/event-state.type';
 
 @Injectable()
 export class EventService {
@@ -129,5 +131,39 @@ export class EventService {
     }
 
     throw new EventRewardNotFoundException();
+  }
+
+  async updateEventState({
+    eventUuid,
+    state,
+  }: {
+    eventUuid: string;
+    state: EventState;
+  }) {
+    const event = await this.eventModel
+      .findOne({ uuid: eventUuid })
+      .select({ state: 1, startedAt: 1, endedAt: 1 })
+      .lean();
+
+    if (!event) {
+      throw new EventNotFoundException();
+    }
+
+    const currentState = event.state;
+
+    const now = new Date();
+
+    const canUpdate =
+      (currentState === EVENT_STATE_MAP.PENDING && now >= event.startedAt) ||
+      (currentState === EVENT_STATE_MAP.STARTED && now >= event.endedAt);
+
+    if (!canUpdate) {
+      throw new EventStateUpdateNotAllowedException();
+    }
+
+    const result = await this.eventModel.updateOne(
+      { uuid: eventUuid },
+      { $set: { state } },
+    );
   }
 }

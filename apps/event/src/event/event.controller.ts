@@ -17,6 +17,7 @@ import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { UpdateEventStateDto } from './dto/update-event-state.dto';
 import { EventActionFactory } from './event-action.factory';
+import { EventConditionFactory } from './event-condition.factory';
 import { EventService } from './event.service';
 
 @Controller('api/v1/event')
@@ -24,6 +25,7 @@ export class EventController {
   constructor(
     private readonly eventService: EventService,
     private readonly eventActionFactory: EventActionFactory,
+    private readonly eventConditionFactory: EventConditionFactory,
   ) {}
 
   @HttpCode(HttpStatus.CREATED)
@@ -74,6 +76,14 @@ export class EventController {
   @Post('/action')
   async doAction(@Body() body: EventActionDto) {
     const action = this.eventActionFactory.getAction(body.type);
-    return action.execute(body);
+    await action.execute(body);
+
+    const condition = this.eventConditionFactory.getCondition(body.type);
+    await condition.checkCondition({
+      eventUuid: body.eventUuid,
+      userUuid: body.userUuid,
+    });
+
+    return;
   }
 }

@@ -26,11 +26,10 @@ export class RegisterEventDto {
   @Type(() => Date)
   endedAt: Date;
 
-  @IsArray()
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => RegisterEventConditionDto)
-  conditions: RegisterEventConditionDto[];
+  condition: RegisterEventConditionDto;
 
   @IsArray()
   @IsNotEmpty()

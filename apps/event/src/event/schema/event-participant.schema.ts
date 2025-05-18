@@ -20,7 +20,7 @@ export class EventParticipant {
   completedAt?: Date;
 
   @Prop({ required: true, type: Object, default: {} })
-  conditionMap: Record<string, EventParticipantCondition>;
+  condition: EventParticipantCondition;
 
   @Prop({ required: false, type: Object, default: {} })
   rewardClaimedMap?: {

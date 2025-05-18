@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { uuidv7 } from 'uuidv7';
 import { EVENT_STATE_MAP } from './constants/event-state.constant';
-import { EVENT_TYPE_MAP } from './constants/event.constant';
 import { EventActionDto } from './dto/event-action.dto';
 import { EventNotFoundException } from './errors/EventNotFoundException';
 import { EventAction } from './interfaces/event-action.interface';
@@ -28,7 +26,7 @@ export class EventActionKillMonsterService
 
     const event = await this.eventModel.findOne(
       { uuid: eventUuid, state: EVENT_STATE_MAP.STARTED },
-      { conditions: 1 },
+      { condition: 1 },
     );
     if (!event) throw new EventNotFoundException();
 
@@ -37,12 +35,24 @@ export class EventActionKillMonsterService
       userUuid,
     });
     if (!eventParticipant) {
-      eventParticipant = await this.eventParticipantModel.create({
+      eventParticipant = new this.eventParticipantModel({
         eventUuid,
         userUuid,
-        conditionMap: {},
-        rewardClaimedMap: {},
+        condition: {
+          uuid: event.condition.uuid,
+          config: event.condition.config.map((elem) => ({
+            monsterUuid: elem.monsterUuid,
+            monsterName: elem.monsterName,
+            killCount: 0,
+          })),
+        },
       });
+    }
+
+    const isCompleted = !!eventParticipant.completedAt;
+
+    if (isCompleted) {
+      return;
     }
 
     const requestList = data.config as any as {
@@ -51,38 +61,20 @@ export class EventActionKillMonsterService
       killCount: number;
     }[];
 
-    const targetConditions = event.conditions.filter(
-      (elem) => elem.type === EVENT_TYPE_MAP.KILL_MONSTER,
-    );
+    const userConfig = eventParticipant.condition.config as Array<{
+      monsterUuid: string;
+      monsterName: string;
+      killCount: number;
+    }>;
 
-    for (const targetCondition of targetConditions) {
-      const { uuid, config } = targetCondition;
-
-      if (!eventParticipant.conditionMap[uuid]) {
-        eventParticipant.conditionMap[uuid] = {
-          uuid: uuidv7(),
-          eventConditionUuid: uuid,
-          type: targetCondition.type,
-          config: (config as any[]).map((elem) => ({
-            monsterUuid: elem.monsterUuid,
-            monsterName: elem.monsterName,
-            killCount: 0,
-          })),
-        };
+    for (const req of requestList) {
+      const target = userConfig.find((u) => u.monsterUuid === req.monsterUuid);
+      if (target) {
+        target.killCount += req.killCount;
       }
-
-      const entry = eventParticipant.conditionMap[uuid];
-      for (const req of requestList) {
-        const monsterEntry = entry.config.find(
-          (item) => item.monsterUuid === req.monsterUuid,
-        );
-        if (monsterEntry) {
-          monsterEntry.killCount += req.killCount;
-        }
-      }
-      eventParticipant.markModified(`conditionMap.${uuid}.config`);
     }
 
+    eventParticipant.markModified('condition.config');
     await eventParticipant.save();
   }
 }

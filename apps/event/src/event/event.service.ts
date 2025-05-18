@@ -50,7 +50,7 @@ export class EventService {
 
     const result = await this.eventModel
       .find(filter)
-      .select({ _id: 0, __v: 0, conditions: 0, rewards: 0 })
+      .select({ _id: 0, __v: 0, condition: 0, rewards: 0 })
       .skip(skip)
       .limit(limit)
       .lean();
@@ -70,9 +70,7 @@ export class EventService {
 
     return {
       ...event,
-      conditions: event.conditions?.map(
-        ({ _id, __v, ...rest }) => rest,
-      ) as Omit<EventCondition, '_id' | '__v'>[],
+      condition: event.condition as Omit<EventCondition, '_id' | '__v'>,
       rewards: event.rewards?.map(({ _id, __v, ...rest }) => rest) as Omit<
         EventReward,
         '_id' | '__v'

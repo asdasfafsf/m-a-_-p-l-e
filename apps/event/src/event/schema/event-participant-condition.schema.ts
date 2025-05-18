@@ -21,7 +21,7 @@ export class EventParticipantCondition {
   @Prop({ required: false })
   completedAt?: Date;
 
-  @Prop({ required: true })
+  @Prop({ required: true, type: [Object] })
   config: any;
 }
 

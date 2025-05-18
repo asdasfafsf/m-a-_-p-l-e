@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EVENT_TYPE_MAP } from './constants/event.constant';
 import { EventConditionKillMonsterService } from './event-condition-kill-monster.service';
 import { EventType } from './types/event.type';
@@ -13,6 +13,8 @@ export class EventConditionFactory {
     switch (type) {
       case EVENT_TYPE_MAP.KILL_MONSTER:
         return this.eventConditionKillMonsterService;
+      default:
+        throw new BadRequestException(`Invalid event type: ${type}`);
     }
   }
 }

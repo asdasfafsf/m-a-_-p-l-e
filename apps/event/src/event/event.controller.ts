@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Put } from '@nestjs/common';
+import { Body, Controller, Get, Put, Query } from '@nestjs/common';
+import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { EventService } from './event.service';
 
@@ -11,7 +12,7 @@ export class EventController {
   }
 
   @Get('')
-  async getEvents() {
-    return this.eventService.getEvents();
+  async getEvents(@Query() query: EventQueryFilterDto) {
+    return this.eventService.getEvents(query);
   }
 }

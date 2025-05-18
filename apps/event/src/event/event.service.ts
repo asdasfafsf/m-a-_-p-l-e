@@ -19,6 +19,10 @@ import {
 } from './schema/event-participant.schema';
 import { EventReward } from './schema/event-reward.schema';
 import { Event, EventDocument } from './schema/event.schema';
+import {
+  UserRewardHistory,
+  UserRewardHistoryDocument,
+} from './schema/user-reward-history.schema';
 import { EventState } from './types/event-state.type';
 
 @Injectable()
@@ -27,6 +31,8 @@ export class EventService {
     @InjectModel(Event.name) private eventModel: Model<EventDocument>,
     @InjectModel(EventParticipant.name)
     private eventParticipantModel: Model<EventParticipantDocument>,
+    @InjectModel(UserRewardHistory.name)
+    private userRewardHistoryModel: Model<UserRewardHistoryDocument>,
   ) {}
 
   async registerEvent(body: RegisterEventDto) {
@@ -173,73 +179,104 @@ export class EventService {
     );
   }
 
-  async claimReward({
+  async claimRewards({
     eventUuid,
     userUuid,
   }: ClaimRewardDto & { eventUuid: string }) {
-    const event = await this.eventModel
-      .findOne({ uuid: eventUuid, state: EVENT_STATE_MAP.STARTED })
-      .select('rewards')
-      .lean();
-    if (!event) throw new EventNotFoundException();
+    let success = false;
+    let failedReason = '';
+    const claimedRewards: string[] = [];
 
-    const eventParticipant = await this.eventParticipantModel
-      .findOne({ eventUuid, userUuid })
-      .select('claimedRewards completedAt')
-      .lean();
+    try {
+      const event = await this.eventModel
+        .findOne({ uuid: eventUuid, state: EVENT_STATE_MAP.STARTED })
+        .select('rewards')
+        .lean();
 
-    if (!eventParticipant) {
-      throw new MapleHttpException(
-        { code: 'NOT_FOUND', message: 'Event participant not found' },
-        HttpStatus.NOT_FOUND,
-      );
-    }
+      if (!event) {
+        failedReason = 'EVENT_NOT_FOUND';
 
-    if (!eventParticipant.completedAt) {
-      throw new MapleHttpException(
-        { code: 'EVENT_NOT_COMPLETED', message: 'Event not completed' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    console.log(eventParticipant.claimedRewards);
-
-    const claimedSet = new Set(
-      eventParticipant.claimedRewards.map((c) => c.rewardUuid),
-    );
-
-    const unClaimedRewards = event.rewards.filter(
-      (r) => !claimedSet.has(r.uuid),
-    );
-
-    if (unClaimedRewards.length === 0)
-      throw new MapleHttpException(
-        { code: 'NO_UNCLAIMED_REWARDS', message: 'No unclaimed rewards' },
-        HttpStatus.BAD_REQUEST,
-      );
-
-    const now = new Date();
-    const claimed = [];
-    for (const reward of unClaimedRewards) {
-      const doc = await this.eventParticipantModel.findOneAndUpdate(
-        {
-          eventUuid,
-          userUuid,
-          'claimedRewards.rewardUuid': { $ne: reward.uuid },
-        },
-        {
-          $push: {
-            claimedRewards: { rewardUuid: reward.uuid, claimedAt: now },
-          },
-        },
-        { new: true },
-      );
-
-      if (doc) {
-        claimed.push(reward);
+        throw new EventNotFoundException();
       }
-    }
 
-    return claimed;
+      const eventParticipant = await this.eventParticipantModel
+        .findOne({ eventUuid, userUuid })
+        .select('claimedRewards completedAt')
+        .lean();
+
+      if (!eventParticipant) {
+        failedReason = 'EVENT_PARTICIPANT_NOT_FOUND';
+
+        throw new MapleHttpException(
+          {
+            code: 'EVENT_PARTICIPANT_NOT_FOUND',
+            message: 'Event participant not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (!eventParticipant.completedAt) {
+        failedReason = 'EVENT_NOT_COMPLETED';
+
+        throw new MapleHttpException(
+          { code: 'EVENT_NOT_COMPLETED', message: 'Event not completed' },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const claimedSet = new Set(
+        eventParticipant.claimedRewards.map((c) => c.rewardUuid),
+      );
+
+      const unClaimedRewards = event.rewards.filter(
+        (r) => !claimedSet.has(r.uuid),
+      );
+
+      if (unClaimedRewards.length === 0) {
+        failedReason = 'NO_UNCLAIMED_REWARDS';
+
+        throw new MapleHttpException(
+          { code: 'NO_UNCLAIMED_REWARDS', message: 'No unclaimed rewards' },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const now = new Date();
+      const claimed = [];
+      for (const reward of unClaimedRewards) {
+        const doc = await this.eventParticipantModel.findOneAndUpdate(
+          {
+            eventUuid,
+            userUuid,
+            'claimedRewards.rewardUuid': { $ne: reward.uuid },
+          },
+          {
+            $push: {
+              claimedRewards: { rewardUuid: reward.uuid, claimedAt: now },
+            },
+          },
+          { new: true },
+        );
+
+        if (doc) {
+          claimed.push(reward);
+          claimedRewards.push(reward.uuid);
+        }
+      }
+
+      success = true;
+      failedReason = '';
+
+      return claimed;
+    } finally {
+      await this.userRewardHistoryModel.create({
+        userUuid,
+        eventUuid,
+        success,
+        rewardUuids: claimedRewards,
+        claimedAt: success ? new Date() : undefined,
+        failedReason: success ? undefined : failedReason,
+      });
+    }
   }
 }

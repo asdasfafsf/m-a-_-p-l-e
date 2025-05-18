@@ -16,6 +16,10 @@ import {
 } from './schema/event-participant.schema';
 import { EventReward, EventRewardSchema } from './schema/event-reward.schema';
 import { Event, EventSchema } from './schema/event.schema';
+import {
+  UserRewardHistory,
+  UserRewardHistorySchema,
+} from './schema/user-reward-history.schema';
 import { EventConfigValidator } from './validator/event-config.validator';
 
 @Module({
@@ -34,6 +38,7 @@ import { EventConfigValidator } from './validator/event-config.validator';
       { name: EventParticipant.name, schema: EventParticipantSchema },
       { name: EventReward.name, schema: EventRewardSchema },
       { name: EventCondition.name, schema: EventConditionSchema },
+      { name: UserRewardHistory.name, schema: UserRewardHistorySchema },
     ]),
   ],
 })

@@ -94,6 +94,6 @@ export class EventController {
     @Param('eventUuid') eventUuid: string,
     @Body() body: ClaimRewardDto,
   ) {
-    return this.eventService.claimReward({ ...body, eventUuid });
+    return this.eventService.claimRewards({ ...body, eventUuid });
   }
 }

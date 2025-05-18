@@ -20,12 +20,6 @@ export class EventCondition {
   @Prop({ required: true, default: () => new Date() })
   updatedAt: Date;
 
-  @Prop({ required: false })
-  startedAt: Date;
-
-  @Prop({ required: false })
-  endedAt: Date;
-
   @Prop({ required: true, type: Object })
   config: Record<string, any>;
 }

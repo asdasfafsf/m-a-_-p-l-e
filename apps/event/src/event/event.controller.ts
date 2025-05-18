@@ -5,10 +5,12 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Post,
   Put,
   Query,
 } from '@nestjs/common';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { EventService } from './event.service';
 
@@ -29,8 +31,17 @@ export class EventController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get('/:uuid')
-  async getEvent(@Param('uuid') uuid: string) {
-    return this.eventService.getEvent(uuid);
+  @Get('/:eventUuid')
+  async getEvent(@Param('eventUuid') eventUuid: string) {
+    return this.eventService.getEvent(eventUuid);
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/:eventUuid/reward')
+  async registerEventReward(
+    @Param('eventUuid') eventUuid: string,
+    @Body() body: RegisterEventRewardDto,
+  ) {
+    return this.eventService.registerEventReward({ ...body, eventUuid });
   }
 }

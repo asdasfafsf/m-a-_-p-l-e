@@ -4,8 +4,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EVENT_STATE_MAP } from './constants/event-state.constant';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { EventNotFoundException } from './errors/EventNotFoundException';
+import { EventNotPendingException } from './errors/EventNotPendingException';
 import { EventCondition } from './schema/event-condition.schema';
 import { EventReward } from './schema/event-reward.schema';
 import { Event, EventDocument } from './schema/event.schema';
@@ -73,5 +75,35 @@ export class EventService {
         '_id' | '__v'
       >[],
     } as unknown as Omit<Event, '_id' | '__v'>; // <- 이거까지 해줘야 타입 에러 깔끔히 제거됨
+  }
+
+  async registerEventReward(
+    body: RegisterEventRewardDto & { eventUuid: string },
+  ) {
+    const { eventUuid, ...reward } = body;
+
+    const event = await this.eventModel
+      .findOne({ uuid: eventUuid })
+      .select({ state: 1 })
+      .lean();
+
+    if (!event) {
+      throw new EventNotFoundException();
+    }
+
+    if (event.state !== EVENT_STATE_MAP.PENDING) {
+      throw new EventNotPendingException();
+    }
+
+    await this.eventModel.updateOne(
+      { uuid: eventUuid },
+      {
+        $push: {
+          rewards: body,
+        },
+      },
+    );
+
+    return;
   }
 }

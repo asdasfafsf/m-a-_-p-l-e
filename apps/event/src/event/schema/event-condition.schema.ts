@@ -3,7 +3,6 @@ import { HydratedDocument } from 'mongoose';
 import { uuidv7 } from 'uuidv7';
 import { EVENT_TYPE_MAP } from '../constants/event.constant';
 import { EventType } from '../types/event.type';
-import { EventReward, EventRewardDocument } from './event-reward.schema';
 
 export type EventConditionDocument = HydratedDocument<EventCondition>;
 
@@ -26,9 +25,6 @@ export class EventCondition {
 
   @Prop({ required: false })
   endedAt: Date;
-
-  @Prop({ required: false, type: [EventReward] })
-  rewards: EventRewardDocument[];
 
   @Prop({ required: true, type: Object })
   config: Record<string, any>;

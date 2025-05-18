@@ -6,7 +6,7 @@ import { EventRewardType } from '../types/event-reward.type';
 
 export type EventRewardDocument = HydratedDocument<EventReward>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class EventReward {
   @Prop({ required: true, default: () => uuidv7() })
   uuid: string;
@@ -14,9 +14,14 @@ export class EventReward {
   @Prop({ required: true, type: String, enum: Object.values(REWARD_TYPE_MAP) })
   type: EventRewardType;
 
-  @Prop({ required: true, type: Object })
-  config: Record<string, any>;
+  @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true })
+  count: number;
+
+  @Prop({ required: false })
+  itemId?: string;
 }
 
 export const EventRewardSchema = SchemaFactory.createForClass(EventReward);
-EventRewardSchema.set('timestamps', true);

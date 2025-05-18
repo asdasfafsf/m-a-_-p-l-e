@@ -1,24 +1,34 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { uuidv7 } from 'uuidv7';
+import { EventParticipantCondition } from './event-participant-condition.schema';
 
 export type EventParticipantDocument = HydratedDocument<EventParticipant>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class EventParticipant {
+  @Prop({ required: true, unique: true, default: () => uuidv7() })
+  uuid: string;
+
   @Prop({ required: true })
   eventUuid: string;
 
   @Prop({ required: true })
   userUuid: string;
 
-  @Prop({ required: true, default: () => new Date() })
-  createdAt: Date;
+  @Prop({ required: false })
+  completedAt?: Date;
 
-  @Prop({ required: true, default: () => new Date() })
-  updatedAt: Date;
+  @Prop({ required: true, type: Object, default: {} })
+  conditionMap: Record<string, EventParticipantCondition>;
 
-  @Prop({ required: true })
-  config: Record<string, any>;
+  @Prop({ required: false, type: Object, default: {} })
+  rewardClaimedMap?: {
+    [rewardUuid: string]: {
+      claimedAt: Date;
+      [key: string]: any;
+    };
+  };
 }
 
 export const EventParticipantSchema =

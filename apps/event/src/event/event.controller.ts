@@ -11,15 +11,20 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { EventActionDto } from './dto/event-action.dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { UpdateEventStateDto } from './dto/update-event-state.dto';
+import { EventActionFactory } from './event-action.factory';
 import { EventService } from './event.service';
 
 @Controller('api/v1/event')
 export class EventController {
-  constructor(private readonly eventService: EventService) {}
+  constructor(
+    private readonly eventService: EventService,
+    private readonly eventActionFactory: EventActionFactory,
+  ) {}
 
   @HttpCode(HttpStatus.CREATED)
   @Put('')
@@ -64,5 +69,11 @@ export class EventController {
     @Body() body: UpdateEventStateDto,
   ) {
     return this.eventService.updateEventState({ eventUuid, state: body.state });
+  }
+
+  @Post('/action')
+  async doAction(@Body() body: EventActionDto) {
+    const action = this.eventActionFactory.getAction(body.type);
+    return action.execute(body);
   }
 }

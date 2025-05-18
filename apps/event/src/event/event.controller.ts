@@ -11,6 +11,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { ClaimRewardDto } from './dto/claim-reward-dto';
 import { EventActionDto } from './dto/event-action.dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
@@ -85,5 +86,14 @@ export class EventController {
     });
 
     return;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/:eventUuid/reward/claim')
+  async claimReward(
+    @Param('eventUuid') eventUuid: string,
+    @Body() body: ClaimRewardDto,
+  ) {
+    return this.eventService.claimReward({ ...body, eventUuid });
   }
 }

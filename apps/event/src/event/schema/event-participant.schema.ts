@@ -3,6 +3,11 @@ import { HydratedDocument } from 'mongoose';
 import { uuidv7 } from 'uuidv7';
 import { EventParticipantCondition } from './event-participant-condition.schema';
 
+type ClaimedReward = {
+  rewardUuid: string;
+  claimedAt: Date;
+};
+
 export type EventParticipantDocument = HydratedDocument<EventParticipant>;
 
 @Schema({ timestamps: true })
@@ -22,16 +27,24 @@ export class EventParticipant {
   @Prop({ required: true, type: Object, default: {} })
   condition: EventParticipantCondition;
 
-  @Prop({ required: false, type: Object, default: {} })
-  rewardClaimedMap?: {
-    [rewardUuid: string]: {
-      claimedAt: Date;
-      [key: string]: any;
-    };
-  };
+  @Prop({
+    required: true,
+    type: [
+      {
+        rewardUuid: { type: String, required: true },
+        claimedAt: { type: Date, required: true },
+      },
+    ],
+    default: [],
+  })
+  claimedRewards: ClaimedReward[];
 }
 
 export const EventParticipantSchema =
   SchemaFactory.createForClass(EventParticipant);
 
 EventParticipantSchema.index({ eventUuid: 1, userUuid: 1 }, { unique: true });
+EventParticipantSchema.index(
+  { eventUuid: 1, userUuid: 1, 'claimedRewards.rewardUuid': 1 },
+  { unique: true, sparse: true },
+);

@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { MapleHttpException } from 'apps/auth/src/common/errors/MapleHttpException';
 import { Model } from 'mongoose';
 import { EVENT_STATE_MAP } from './constants/event-state.constant';
+import { ClaimRewardDto } from './dto/claim-reward-dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
@@ -11,6 +13,10 @@ import { EventNotPendingException } from './errors/EventNotPendingException';
 import { EventRewardNotFoundException } from './errors/EventRewardNotFoundException';
 import { EventStateUpdateNotAllowedException } from './errors/EventStateUpdateNotAllowedException';
 import { EventCondition } from './schema/event-condition.schema';
+import {
+  EventParticipant,
+  EventParticipantDocument,
+} from './schema/event-participant.schema';
 import { EventReward } from './schema/event-reward.schema';
 import { Event, EventDocument } from './schema/event.schema';
 import { EventState } from './types/event-state.type';
@@ -19,6 +25,8 @@ import { EventState } from './types/event-state.type';
 export class EventService {
   constructor(
     @InjectModel(Event.name) private eventModel: Model<EventDocument>,
+    @InjectModel(EventParticipant.name)
+    private eventParticipantModel: Model<EventParticipantDocument>,
   ) {}
 
   async registerEvent(body: RegisterEventDto) {
@@ -163,5 +171,75 @@ export class EventService {
       { uuid: eventUuid },
       { $set: { state } },
     );
+  }
+
+  async claimReward({
+    eventUuid,
+    userUuid,
+  }: ClaimRewardDto & { eventUuid: string }) {
+    const event = await this.eventModel
+      .findOne({ uuid: eventUuid, state: EVENT_STATE_MAP.STARTED })
+      .select('rewards')
+      .lean();
+    if (!event) throw new EventNotFoundException();
+
+    const eventParticipant = await this.eventParticipantModel
+      .findOne({ eventUuid, userUuid })
+      .select('claimedRewards completedAt')
+      .lean();
+
+    if (!eventParticipant) {
+      throw new MapleHttpException(
+        { code: 'NOT_FOUND', message: 'Event participant not found' },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (!eventParticipant.completedAt) {
+      throw new MapleHttpException(
+        { code: 'EVENT_NOT_COMPLETED', message: 'Event not completed' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    console.log(eventParticipant.claimedRewards);
+
+    const claimedSet = new Set(
+      eventParticipant.claimedRewards.map((c) => c.rewardUuid),
+    );
+
+    const unClaimedRewards = event.rewards.filter(
+      (r) => !claimedSet.has(r.uuid),
+    );
+
+    if (unClaimedRewards.length === 0)
+      throw new MapleHttpException(
+        { code: 'NO_UNCLAIMED_REWARDS', message: 'No unclaimed rewards' },
+        HttpStatus.BAD_REQUEST,
+      );
+
+    const now = new Date();
+    const claimed = [];
+    for (const reward of unClaimedRewards) {
+      const doc = await this.eventParticipantModel.findOneAndUpdate(
+        {
+          eventUuid,
+          userUuid,
+          'claimedRewards.rewardUuid': { $ne: reward.uuid },
+        },
+        {
+          $push: {
+            claimedRewards: { rewardUuid: reward.uuid, claimedAt: now },
+          },
+        },
+        { new: true },
+      );
+
+      if (doc) {
+        claimed.push(reward);
+      }
+    }
+
+    return claimed;
   }
 }

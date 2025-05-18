@@ -5,6 +5,9 @@ import { Model } from 'mongoose';
 import { EVENT_STATE_MAP } from './constants/event-state.constant';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
+import { EventNotFoundException } from './errors/EventNotFoundException';
+import { EventCondition } from './schema/event-condition.schema';
+import { EventReward } from './schema/event-reward.schema';
 import { Event, EventDocument } from './schema/event.schema';
 
 @Injectable()
@@ -48,5 +51,27 @@ export class EventService {
       .lean();
 
     return result;
+  }
+
+  async getEvent(uuid: string) {
+    const event = await this.eventModel
+      .findOne({ uuid })
+      .select({ _id: 0, __v: 0 })
+      .lean();
+
+    if (!event) {
+      throw new EventNotFoundException();
+    }
+
+    return {
+      ...event,
+      conditions: event.conditions?.map(
+        ({ _id, __v, ...rest }) => rest,
+      ) as Omit<EventCondition, '_id' | '__v'>[],
+      rewards: event.rewards?.map(({ _id, __v, ...rest }) => rest) as Omit<
+        EventReward,
+        '_id' | '__v'
+      >[],
+    } as unknown as Omit<Event, '_id' | '__v'>; // <- 이거까지 해줘야 타입 에러 깔끔히 제거됨
   }
 }

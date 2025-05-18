@@ -55,7 +55,14 @@
       "entryFile": "main",
       "sourceRoot": "apps/event/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/event/tsconfig.app.json"
+        "tsConfigPath": "apps/event/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "../.env.local",
+            "outDir": "dist/apps/event/.env.local",
+            "watchAssets": true
+          }
+        ]
       }
     }
   }

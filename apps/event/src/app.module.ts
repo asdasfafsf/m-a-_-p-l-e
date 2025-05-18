@@ -4,6 +4,7 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validationSchema } from './config/validationSchema';
+import { EventModule } from './event/event.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { validationSchema } from './config/validationSchema';
           : join(__dirname, '.env'),
       ],
     }),
+    EventModule,
   ],
   controllers: [AppController],
   providers: [AppService],

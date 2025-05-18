@@ -1,0 +1,5 @@
+export const EVENT_STATE_MAP = {
+  PENDING: 'PENDING',
+  STARTED: 'STARTED',
+  ENDED: 'ENDED',
+};

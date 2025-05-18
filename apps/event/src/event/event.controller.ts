@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -43,5 +44,14 @@ export class EventController {
     @Body() body: RegisterEventRewardDto,
   ) {
     return this.eventService.registerEventReward({ ...body, eventUuid });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete('/:eventUuid/reward/:rewardUuid')
+  async deleteEventReward(
+    @Param('eventUuid') eventUuid: string,
+    @Param('rewardUuid') rewardUuid: string,
+  ) {
+    return this.eventService.deleteEventReward({ eventUuid, rewardUuid });
   }
 }

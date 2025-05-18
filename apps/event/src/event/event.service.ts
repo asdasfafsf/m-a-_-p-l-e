@@ -8,6 +8,7 @@ import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { EventNotFoundException } from './errors/EventNotFoundException';
 import { EventNotPendingException } from './errors/EventNotPendingException';
+import { EventRewardNotFoundException } from './errors/EventRewardNotFoundException';
 import { EventCondition } from './schema/event-condition.schema';
 import { EventReward } from './schema/event-reward.schema';
 import { Event, EventDocument } from './schema/event.schema';
@@ -77,11 +78,7 @@ export class EventService {
     } as unknown as Omit<Event, '_id' | '__v'>; // <- 이거까지 해줘야 타입 에러 깔끔히 제거됨
   }
 
-  async registerEventReward(
-    body: RegisterEventRewardDto & { eventUuid: string },
-  ) {
-    const { eventUuid, ...reward } = body;
-
+  async assertUpdatableEvent(eventUuid: string) {
     const event = await this.eventModel
       .findOne({ uuid: eventUuid })
       .select({ state: 1 })
@@ -94,8 +91,16 @@ export class EventService {
     if (event.state !== EVENT_STATE_MAP.PENDING) {
       throw new EventNotPendingException();
     }
+  }
 
-    await this.eventModel.updateOne(
+  async registerEventReward(
+    body: RegisterEventRewardDto & { eventUuid: string },
+  ) {
+    const { eventUuid, ...reward } = body;
+
+    await this.assertUpdatableEvent(eventUuid);
+
+    const result = await this.eventModel.updateOne(
       { uuid: eventUuid },
       {
         $push: {
@@ -103,7 +108,26 @@ export class EventService {
         },
       },
     );
-
     return;
+  }
+
+  async deleteEventReward({
+    eventUuid,
+    rewardUuid,
+  }: {
+    eventUuid: string;
+    rewardUuid: string;
+  }) {
+    await this.assertUpdatableEvent(eventUuid);
+    const result = await this.eventModel.updateOne(
+      { uuid: eventUuid },
+      { $pull: { rewards: { uuid: rewardUuid } } },
+    );
+
+    if (result.acknowledged && result.modifiedCount > 0) {
+      return;
+    }
+
+    throw new EventRewardNotFoundException();
   }
 }

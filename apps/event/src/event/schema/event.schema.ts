@@ -11,7 +11,7 @@ import { EventReward, EventRewardDocument } from './event-reward.schema';
 
 export type EventDocument = HydratedDocument<Event>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Event {
   @Prop({ required: true, unique: true, default: () => uuidv7() })
   uuid: string;
@@ -44,4 +44,5 @@ export class Event {
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);
-EventSchema.set('timestamps', true);
+EventSchema.index({ state: 1, startedAt: 1, endedAt: 1 });
+EventSchema.index({ uuid: 1 }, { unique: true });

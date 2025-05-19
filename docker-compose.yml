@@ -10,15 +10,16 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin123
-
+    volumes:
+      - ./mongo/users.json:/docker-entrypoint-initdb.d/users.json
+      - ./mongo/events.json:/docker-entrypoint-initdb.d/events.json
+      - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js
   maple-auth:
     build:
       context: .
       dockerfile: apps/auth/dockerfile
     container_name: maple-auth
     restart: unless-stopped
-    ports:
-      - '5562:5562'
     depends_on:
       - mongo
     environment:
@@ -54,8 +55,6 @@ services:
       dockerfile: apps/event/dockerfile
     container_name: maple-event
     restart: unless-stopped
-    ports:
-      - '5563:5563'
     depends_on:
       - mongo
     environment:

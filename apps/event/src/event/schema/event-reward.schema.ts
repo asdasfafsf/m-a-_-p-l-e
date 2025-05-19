@@ -20,8 +20,8 @@ export class EventReward {
   @Prop({ required: true })
   count: number;
 
-  @Prop({ required: false })
-  itemId?: string;
+  @Prop({ required: true })
+  itemId: string;
 }
 
 export const EventRewardSchema = SchemaFactory.createForClass(EventReward);

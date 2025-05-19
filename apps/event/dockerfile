@@ -1,0 +1,26 @@
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml ./
+COPY nest-cli.json tsconfig*.json ./
+COPY apps/event ./apps/event
+COPY libs ./libs
+
+RUN pnpm install
+RUN pnpm build event
+
+# 실행 스테이지
+FROM node:18-alpine AS runner
+
+WORKDIR /app
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml ./
+COPY dist/apps/event ./dist/apps/event
+
+RUN pnpm install --prod
+
+CMD ["node", "dist/apps/event/main.js"]

@@ -49,6 +49,20 @@ export class EventService {
     }
   }
 
+  async getEvent(eventUuid: string) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(
+          `${this.eventServerConfig.url}/api/v1/event/${eventUuid}`,
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      await this.handleError(error);
+    }
+  }
+
   async handleError(error: any) {
     if (error instanceof AxiosError) {
       const errorData = error.response?.data;

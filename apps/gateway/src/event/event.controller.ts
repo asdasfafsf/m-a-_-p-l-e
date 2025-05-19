@@ -36,8 +36,11 @@ import { ApiOperationWithRoles } from '../swagger/decorators/api-roles.decorator
 import { ApiUnauthorizedResponse } from '../swagger/decorators/api-unauthorized-response.decorator';
 import { EventActionDto } from './dto/event-action.dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { EventRewardHistoryListDto } from './dto/event-reward-history-list.dto';
 import { EventRewardDto } from './dto/event-reward.dto';
 import { EventsDto } from './dto/events.dto';
+import { GetRewardHistoryMeQueryDto } from './dto/get-reward-history-me.dto';
+import { GetRewardHistoryQueryDto } from './dto/get-reward-history.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { UpdateEventStateDto } from './dto/update-event-state.dto';
@@ -362,6 +365,46 @@ export class EventController {
     return this.eventService.claimRewards({
       userUuid: request.user.uuid,
       eventUuid,
+    });
+  }
+
+  @ApiOperationWithRoles(
+    {
+      summary: '이벤트 보상 수령 내역 조회',
+      description: '이벤트 보상 수령 내역 조회',
+    },
+    [ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR],
+  )
+  @ApiResponseDto(HttpStatus.OK, EventRewardHistoryListDto)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @Get('/reward/history/me')
+  @Roles(ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR)
+  async getRewardHistorysMe(
+    @Req() request: AuthUserRequest,
+    @Query() query: GetRewardHistoryMeQueryDto,
+  ) {
+    return this.eventService.getRewardHistoryMe({
+      ...query,
+      userUuid: request?.user?.uuid ?? 'UNKNOWN',
+    });
+  }
+
+  @ApiOperationWithRoles(
+    {
+      summary: '이벤트 보상 수령 내역 조회',
+      description: '이벤트 보상 수령 내역 조회',
+    },
+    [ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR],
+  )
+  @ApiResponseDto(HttpStatus.OK, EventRewardHistoryListDto)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @Get('/reward/history/admin')
+  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
+  async getRewardHistorysAdmin(@Query() query: GetRewardHistoryQueryDto) {
+    return this.eventService.getRewardHistoryAdmin({
+      ...query,
     });
   }
 }

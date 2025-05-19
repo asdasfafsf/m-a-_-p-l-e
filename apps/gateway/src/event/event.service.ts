@@ -11,6 +11,7 @@ import {
 import { EventServerConfig } from '../config/eventServerConfig';
 import { EventActionDto } from './dto/event-action.dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { GetRewardHistoryQueryDto } from './dto/get-reward-history.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 
@@ -150,6 +151,36 @@ export class EventService {
         this.httpService.post(
           `${this.eventServerConfig.url}/api/v1/event/${eventUuid}/reward/claim`,
           { userUuid },
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      await this.handleError(error);
+    }
+  }
+
+  async getRewardHistoryMe(query: GetRewardHistoryQueryDto) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(
+          `${this.eventServerConfig.url}/api/v1/event/reward/history/me`,
+          { params: query },
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      await this.handleError(error);
+    }
+  }
+
+  async getRewardHistoryAdmin(query: GetRewardHistoryQueryDto) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(
+          `${this.eventServerConfig.url}/api/v1/event/reward/history/admin`,
+          { params: query },
         ),
       );
 

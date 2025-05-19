@@ -2,14 +2,21 @@ import { applyDecorators, Type } from '@nestjs/common';
 import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 import { ResponseDto } from '../../common/dto/response.dto';
 
-export const ApiResponseDto = <TModel extends Type<any>>(
+export const ApiResponseDto = <TModel extends Type<any> | [Type<any>]>(
   status: number,
   model?: TModel,
 ) => {
-  const decorators = [];
+  // model이 [Class] 형태로 들어오면 배열 모드로 전환
+  const isArray = Array.isArray(model);
+  const itemModel = isArray
+    ? (model as Type<any>[])[0]
+    : (model as Type<any> | undefined);
 
-  decorators.push(ApiExtraModels(ResponseDto));
-  if (model) decorators.push(ApiExtraModels(model));
+  const decorators = [ApiExtraModels(ResponseDto)];
+
+  if (itemModel) {
+    decorators.push(ApiExtraModels(itemModel));
+  }
 
   decorators.push(
     ApiResponse({
@@ -17,15 +24,18 @@ export const ApiResponseDto = <TModel extends Type<any>>(
       schema: {
         allOf: [
           { $ref: getSchemaPath(ResponseDto) },
-          ...(model
-            ? [
-                {
-                  properties: {
-                    data: { $ref: getSchemaPath(model) },
-                  },
+          itemModel
+            ? {
+                properties: {
+                  data: isArray
+                    ? {
+                        type: 'array',
+                        items: { $ref: getSchemaPath(itemModel) },
+                      }
+                    : { $ref: getSchemaPath(itemModel) },
                 },
-              ]
-            : []),
+              }
+            : {},
         ],
       },
     }),

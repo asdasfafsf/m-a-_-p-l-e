@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { MapleHttpException } from 'apps/auth/src/common/errors/MapleHttpException';
 import { Model } from 'mongoose';
+import { MapleHttpException } from '../common/errors/MapleHttpException';
 import { EVENT_STATE_MAP } from './constants/event-state.constant';
 import { ClaimRewardDto } from './dto/claim-reward-dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';

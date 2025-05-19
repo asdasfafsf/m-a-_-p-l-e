@@ -23,11 +23,13 @@ export class UsersController {
     return;
   }
 
+  @HttpCode(HttpStatus.OK)
   @Get('/')
   async findManyUsers(@Query() query: FindManyUsersDto) {
     return await this.usersService.findManyUsers(query);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Patch('/state')
   async updateUserState(@Body() updateUserStateDto: UpdateUserStateDto) {
     await this.usersService.updateUserState(updateUserStateDto);

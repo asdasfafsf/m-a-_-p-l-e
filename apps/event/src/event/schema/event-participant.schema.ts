@@ -1,27 +1,50 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { uuidv7 } from 'uuidv7';
+import { EventParticipantCondition } from './event-participant-condition.schema';
+
+type ClaimedReward = {
+  rewardUuid: string;
+  claimedAt: Date;
+};
 
 export type EventParticipantDocument = HydratedDocument<EventParticipant>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class EventParticipant {
+  @Prop({ required: true, unique: true, default: () => uuidv7() })
+  uuid: string;
+
   @Prop({ required: true })
   eventUuid: string;
 
   @Prop({ required: true })
   userUuid: string;
 
-  @Prop({ required: true, default: () => new Date() })
-  createdAt: Date;
+  @Prop({ required: false })
+  completedAt?: Date;
 
-  @Prop({ required: true, default: () => new Date() })
-  updatedAt: Date;
+  @Prop({ required: true, type: Object, default: {} })
+  condition: EventParticipantCondition;
 
-  @Prop({ required: true })
-  config: Record<string, any>;
+  @Prop({
+    required: true,
+    type: [
+      {
+        rewardUuid: { type: String, required: true },
+        claimedAt: { type: Date, required: true },
+      },
+    ],
+    default: [],
+  })
+  claimedRewards: ClaimedReward[];
 }
 
 export const EventParticipantSchema =
   SchemaFactory.createForClass(EventParticipant);
 
 EventParticipantSchema.index({ eventUuid: 1, userUuid: 1 }, { unique: true });
+EventParticipantSchema.index(
+  { eventUuid: 1, userUuid: 1, 'claimedRewards.rewardUuid': 1 },
+  { unique: true, sparse: true },
+);

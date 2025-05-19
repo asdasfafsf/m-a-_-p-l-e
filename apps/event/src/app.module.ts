@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { validationSchema } from './config/validationSchema';
 import { EventModule } from './event/event.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
+import { EventRewardHistoryModule } from './event-reward-history/event-reward-history.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
       ],
     }),
     EventModule,
+    EventRewardHistoryModule,
   ],
   controllers: [AppController],
   providers: [

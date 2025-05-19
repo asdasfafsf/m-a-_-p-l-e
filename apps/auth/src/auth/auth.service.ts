@@ -55,12 +55,12 @@ export class AuthService {
         throw new InvalidEmailException();
       }
 
+      userUuid = user.uuid;
+
       if (user.state === USER_STATE_MAP.INACTIVE) {
         failReason = LOGIN_FAIL_REASON_MAP.INACTIVE_USER;
         throw new InActiveUserException();
       }
-
-      userUuid = user.uuid;
 
       const isPasswordValid = await this.usersService.validatePassword(
         password,
@@ -77,6 +77,7 @@ export class AuthService {
       const { token: newRefreshToken, jtl } = await this.generateRefreshToken({
         sub: uuid,
       });
+
       await this.usersService.saveRefreshToken({
         uuid,
         jtl,

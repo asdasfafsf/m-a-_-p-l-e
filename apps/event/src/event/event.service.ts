@@ -45,10 +45,38 @@ export class EventService {
 
     //TODO: 이벤트 등록 후 스케줄러 등록해서 이벤트 시작 시간에 이벤트 시작
     //TODO: 이벤트 종료 시간에 이벤트 종료
-    return event;
+    return {
+      name: event.name,
+      uuid: event.uuid,
+      state: event.state,
+      startedAt: event.startedAt,
+      endedAt: event.endedAt,
+      condition: {
+        type: event.condition.type,
+        startedAt: event.condition.startedAt,
+        endedAt: event.condition.endedAt,
+        config: event.condition.config,
+      },
+      rewards: event.rewards.map((elem) => {
+        return {
+          type: elem.type,
+          itemId: elem.itemId,
+          name: elem.name,
+          uuid: elem.uuid,
+          count: elem.count,
+          createdAt: (elem as any).createdAt,
+          updatedAt: (elem as any).updatedAt,
+        };
+      }),
+    };
   }
 
-  async getEvents(query: EventQueryFilterDto): Promise<EventDocument[]> {
+  async getEvents(query: EventQueryFilterDto): Promise<{
+    events: EventDocument[];
+    totalCount: number;
+    totalPage: number;
+    currentPage: number;
+  }> {
     const { startedAt, endedAt, state, page = 1, limit = 10 } = query;
 
     const filter: any = {
@@ -64,6 +92,7 @@ export class EventService {
 
     const skip = (page - 1) * limit;
 
+    const total = await this.eventModel.countDocuments(filter);
     const result = await this.eventModel
       .find(filter)
       .select({ _id: 0, __v: 0, condition: 0, rewards: 0 })
@@ -71,7 +100,12 @@ export class EventService {
       .limit(limit)
       .lean();
 
-    return result;
+    return {
+      events: result,
+      totalCount: total,
+      totalPage: Math.ceil(total / limit),
+      currentPage: page,
+    };
   }
 
   async getEvent(uuid: string) {

@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -27,11 +28,13 @@ import {
   ERROR_CODE_MAP,
   ERROR_MESSAGE_MAP,
 } from '../common/errors/constants/error.constant';
+import { AuthUserRequest } from '../common/errors/types/auth-user.type';
 import { ApiBadRequestResponse } from '../swagger/decorators/api-bad-request-response.decorator';
 import { ApiForbiddenResponse } from '../swagger/decorators/api-forbidden-response.decorator';
 import { ApiResponseDto } from '../swagger/decorators/api-response-dto.decorator';
 import { ApiOperationWithRoles } from '../swagger/decorators/api-roles.decorator';
 import { ApiUnauthorizedResponse } from '../swagger/decorators/api-unauthorized-response.decorator';
+import { EventActionDto } from './dto/event-action.dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { EventsDto } from './dto/events.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
@@ -278,5 +281,31 @@ export class EventController {
     @Body() body: UpdateEventStateDto,
   ) {
     return this.eventService.updateEventState({ eventUuid, state: body.state });
+  }
+
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: `
+        - ${ERROR_CODE_MAP.EVENT_NOT_FOUND}: ${ERROR_MESSAGE_MAP.EVENT_NOT_FOUND}
+        - ${ERROR_CODE_MAP.EVENT_PARTICIPANT_NOT_FOUND}: ${ERROR_MESSAGE_MAP.EVENT_PARTICIPANT_NOT_FOUND}
+    `,
+    schema: {
+      example: {
+        code: ERROR_CODE_MAP.EVENT_NOT_FOUND,
+        message: ERROR_MESSAGE_MAP.EVENT_NOT_FOUND,
+      },
+    },
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('/action')
+  @Roles(ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR)
+  async doAction(
+    @Req() request: AuthUserRequest,
+    @Body() body: EventActionDto,
+  ) {
+    return this.eventService.doAction({
+      ...body,
+      userUuid: request.user.uuid,
+    });
   }
 }

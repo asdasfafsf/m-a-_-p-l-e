@@ -9,6 +9,7 @@ import {
   ERROR_MESSAGE_MAP,
 } from '../common/errors/constants/error.constant';
 import { EventServerConfig } from '../config/eventServerConfig';
+import { EventActionDto } from './dto/event-action.dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
@@ -122,6 +123,20 @@ export class EventService {
     }
   }
 
+  async doAction(body: EventActionDto & { userUuid: string }) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.post(
+          `${this.eventServerConfig.url}/api/v1/event/action`,
+          body,
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      await this.handleError(error);
+    }
+  }
   async handleError(error: any) {
     if (error instanceof AxiosError) {
       const errorData = error.response?.data;

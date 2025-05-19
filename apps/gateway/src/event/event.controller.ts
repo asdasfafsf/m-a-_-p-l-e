@@ -36,6 +36,7 @@ import { ApiOperationWithRoles } from '../swagger/decorators/api-roles.decorator
 import { ApiUnauthorizedResponse } from '../swagger/decorators/api-unauthorized-response.decorator';
 import { EventActionDto } from './dto/event-action.dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { EventRewardDto } from './dto/event-reward.dto';
 import { EventsDto } from './dto/events.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
@@ -296,6 +297,25 @@ export class EventController {
       },
     },
   })
+  @ApiBearerAuth()
+  @ApiResponseDto(HttpStatus.OK, null)
+  @ApiOperationWithRoles(
+    {
+      summary: '이벤트 행위',
+      description: '이벤트 목표 도달을 위한 ACTION (ex KILL_MONSTER)',
+    },
+    [ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR],
+  )
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: '이벤트를 찾을 수 없습니다.',
+    schema: {
+      example: {
+        code: ERROR_CODE_MAP.EVENT_NOT_FOUND,
+        message: ERROR_MESSAGE_MAP.EVENT_NOT_FOUND,
+      },
+    },
+  })
   @HttpCode(HttpStatus.OK)
   @Post('/action')
   @Roles(ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR)
@@ -306,6 +326,42 @@ export class EventController {
     return this.eventService.doAction({
       ...body,
       userUuid: request.user.uuid,
+    });
+  }
+
+  @ApiOperationWithRoles(
+    {
+      summary: '이벤트 보상 수령 요청',
+      description: '이벤트 보상 수령 요청',
+    },
+    [ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR],
+  )
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: `
+        - ${ERROR_CODE_MAP.EVENT_NOT_FOUND}: ${ERROR_MESSAGE_MAP.EVENT_NOT_FOUND}
+        - ${ERROR_CODE_MAP.EVENT_PARTICIPANT_NOT_FOUND}: ${ERROR_MESSAGE_MAP.EVENT_PARTICIPANT_NOT_FOUND}
+        - ${ERROR_CODE_MAP.EVENT_NOT_COMPLETED}: ${ERROR_MESSAGE_MAP.EVENT_NOT_COMPLETED}
+    `,
+    schema: {
+      example: {
+        code: ERROR_CODE_MAP.EVENT_NOT_FOUND,
+        message: ERROR_MESSAGE_MAP.EVENT_NOT_FOUND,
+      },
+    },
+  })
+  @ApiResponseDto(HttpStatus.OK, [EventRewardDto])
+  @HttpCode(HttpStatus.OK)
+  @Post('/:eventUuid/reward/claim')
+  @Roles(ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR)
+  async claimReward(
+    @Param('eventUuid') eventUuid: string,
+    @Req() request: AuthUserRequest,
+  ) {
+    return this.eventService.claimRewards({
+      userUuid: request.user.uuid,
+      eventUuid,
     });
   }
 }

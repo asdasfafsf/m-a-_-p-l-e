@@ -137,6 +137,28 @@ export class EventService {
       await this.handleError(error);
     }
   }
+
+  async claimRewards({
+    userUuid,
+    eventUuid,
+  }: {
+    userUuid: string;
+    eventUuid: string;
+  }) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.post(
+          `${this.eventServerConfig.url}/api/v1/event/${eventUuid}/reward/claim`,
+          { userUuid },
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      await this.handleError(error);
+    }
+  }
+
   async handleError(error: any) {
     if (error instanceof AxiosError) {
       const errorData = error.response?.data;

@@ -51,6 +51,7 @@ import { EventService } from './event.service';
 @ApiBadRequestResponse()
 @ApiForbiddenResponse()
 @ApiUnauthorizedResponse()
+@ApiBearerAuth()
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
@@ -106,6 +107,7 @@ export class EventController {
       },
     },
   })
+  @ApiBearerAuth()
   @Put('/')
   @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
   @HttpCode(HttpStatus.CREATED)
@@ -113,6 +115,7 @@ export class EventController {
     return this.eventService.registerEvent(body);
   }
 
+  @ApiBearerAuth()
   @Get('/')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '이벤트 조회' })

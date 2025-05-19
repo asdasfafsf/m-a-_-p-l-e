@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -13,10 +15,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { ApiBadRequestResponse } from '../swagger/decorators/api-bad-request-response.decorator';
 import { ApiForbiddenResponse } from '../swagger/decorators/api-forbidden-response.decorator';
+import { ApiResponseDto } from '../swagger/decorators/api-response-dto.decorator';
 import { ApiUnauthorizedResponse } from '../swagger/decorators/api-unauthorized-response.decorator';
+import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { EventsDto } from './dto/events.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { EventService } from './event.service';
-
 @Controller('api/v1/event')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Event')
@@ -29,7 +33,7 @@ export class EventController {
   @ApiTags('Event')
   @Put('/')
   @HttpCode(HttpStatus.CREATED)
-  @Roles(ROLE_MAP.ADMIN)
+  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
   @ApiOperation({ summary: '이벤트 등록' })
   @ApiResponse({
     status: 201,
@@ -76,7 +80,18 @@ export class EventController {
       },
     },
   })
+  @HttpCode(HttpStatus.CREATED)
   async registerEvent(@Body() body: RegisterEventDto) {
     return this.eventService.registerEvent(body);
+  }
+
+  @ApiTags('Event')
+  @Get('/')
+  @HttpCode(HttpStatus.OK)
+  @Roles(ROLE_MAP.ADMIN)
+  @ApiOperation({ summary: '이벤트 조회' })
+  @ApiResponseDto(HttpStatus.OK, EventsDto)
+  async getEvents(@Query() query: EventQueryFilterDto) {
+    return this.eventService.getEvents(query);
   }
 }

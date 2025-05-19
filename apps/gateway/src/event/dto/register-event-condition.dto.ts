@@ -33,10 +33,29 @@ export class RegisterEventConditionDto {
   endedAt: Date;
 
   @ApiProperty({
-    example: { requiredKillCount: 100 },
     description: '이벤트 조건 설정, type에 따라 구조 다름',
-    type: 'object',
-    additionalProperties: true,
+    oneOf: [
+      {
+        type: 'array',
+        description: 'KILL_MONSTER 타입 이벤트 조건',
+        example: [
+          {
+            monsterUuid: '123',
+            monsterName: '주황버섯',
+            killCount: 100,
+          },
+        ],
+      },
+      {
+        type: 'array',
+        description: 'LOGIN 타입 이벤트 조건',
+        example: [
+          {
+            loginCount: 5,
+          },
+        ],
+      },
+    ],
   })
   @Validate(EventConfigValidator)
   config: any;

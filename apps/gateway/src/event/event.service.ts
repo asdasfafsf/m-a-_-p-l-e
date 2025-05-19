@@ -9,6 +9,7 @@ import {
   ERROR_MESSAGE_MAP,
 } from '../common/errors/constants/error.constant';
 import { EventServerConfig } from '../config/eventServerConfig';
+import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 
 @Injectable()
@@ -30,7 +31,20 @@ export class EventService {
 
       return response.data;
     } catch (error) {
-      console.log(`${this.eventServerConfig.url}/api/v1/event`);
+      await this.handleError(error);
+    }
+  }
+
+  async getEvents(query: EventQueryFilterDto) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(`${this.eventServerConfig.url}/api/v1/event`, {
+          params: query,
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
       await this.handleError(error);
     }
   }

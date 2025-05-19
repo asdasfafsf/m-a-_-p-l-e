@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class GetRewardHistoryQueryDto {
@@ -11,9 +12,11 @@ export class GetRewardHistoryQueryDto {
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   page?: number = 1;
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   limit?: number = 100;
 }

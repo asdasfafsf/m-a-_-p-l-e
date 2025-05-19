@@ -54,9 +54,6 @@ import { EventService } from './event.service';
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
-  @Put('/')
-  @HttpCode(HttpStatus.CREATED)
-  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
   @ApiBearerAuth()
   @ApiOperationWithRoles(
     {
@@ -109,6 +106,8 @@ export class EventController {
       },
     },
   })
+  @Put('/')
+  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
   @HttpCode(HttpStatus.CREATED)
   async registerEvent(@Body() body: RegisterEventDto) {
     return this.eventService.registerEvent(body);
@@ -395,13 +394,13 @@ export class EventController {
       summary: '이벤트 보상 수령 내역 조회',
       description: '이벤트 보상 수령 내역 조회',
     },
-    [ROLE_MAP.USER, ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR],
+    [ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR],
   )
   @ApiResponseDto(HttpStatus.OK, EventRewardHistoryListDto)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @Get('/reward/history/admin')
-  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
+  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR, ROLE_MAP.AUDITOR)
   async getRewardHistorysAdmin(@Query() query: GetRewardHistoryQueryDto) {
     return this.eventService.getRewardHistoryAdmin({
       ...query,

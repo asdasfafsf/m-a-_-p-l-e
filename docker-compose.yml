@@ -46,3 +46,22 @@ services:
       JWT_SECRET: honeyjam
       JWT_EXPIRES_IN: 1h
       AUTH_SERVER_URL: http://maple-auth:5562
+      EVENT_SERVER_URL: http://maple-event:5563
+
+  maple-event:
+    build:
+      context: .
+      dockerfile: apps/event/dockerfile
+    container_name: maple-event
+    restart: unless-stopped
+    ports:
+      - '5563:5563'
+    depends_on:
+      - mongo
+    environment:
+      NODE_ENV: prod
+      SERVER_PORT: 5563
+      JWT_SECRET: honeyjam
+      JWT_EXPIRES_IN: 1h
+      MONGO_URI: mongodb://admin:admin123@mongo:27017/?authSource=admin
+      MONGO_DB_NAME: maple

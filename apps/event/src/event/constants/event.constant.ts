@@ -1,0 +1,3 @@
+export const EVENT_TYPE_MAP = {
+  KILL_MONSTER: 'KILL_MONSTER',
+};

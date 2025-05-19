@@ -62,6 +62,10 @@ export class AuthService {
         throw new InActiveUserException();
       }
 
+
+      // 혹시 이게 뭐지 하고 지울까봐 주석달음 유저 로깅용이니 지우지말것
+      userUuid = user.uuid;
+
       const isPasswordValid = await this.usersService.validatePassword(
         password,
         user.password,

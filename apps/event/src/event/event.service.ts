@@ -45,7 +45,30 @@ export class EventService {
 
     //TODO: 이벤트 등록 후 스케줄러 등록해서 이벤트 시작 시간에 이벤트 시작
     //TODO: 이벤트 종료 시간에 이벤트 종료
-    return event;
+    return {
+      name: event.name,
+      uuid: event.uuid,
+      state: event.state,
+      startedAt: event.startedAt,
+      endedAt: event.endedAt,
+      condition: {
+        type: event.condition.type,
+        startedAt: event.condition.startedAt,
+        endedAt: event.condition.endedAt,
+        config: event.condition.config,
+      },
+      rewards: event.rewards.map((elem) => {
+        return {
+          type: elem.type,
+          itemId: elem.itemId,
+          name: elem.name,
+          uuid: elem.uuid,
+          count: elem.count,
+          createdAt: (elem as any).createdAt,
+          updatedAt: (elem as any).updatedAt,
+        };
+      }),
+    };
   }
 
   async getEvents(query: EventQueryFilterDto): Promise<EventDocument[]> {

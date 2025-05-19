@@ -11,6 +11,7 @@ export const ERROR_CODE_MAP = {
   INACTIVE_USER: 'INACTIVE_USER',
   FORBIDDEN: 'FORBIDDEN',
   EVENT_NOT_FOUND: 'EVENT_NOT_FOUND',
+  EVENT_STATE_UPDATE_NOT_ALLOWED: 'EVENT_STATE_UPDATE_NOT_ALLOWED',
 } as const;
 
 export const ERROR_MESSAGE_MAP = {
@@ -26,4 +27,6 @@ export const ERROR_MESSAGE_MAP = {
   [ERROR_CODE_MAP.INACTIVE_USER]: '비활성화된 유저입니다.',
   [ERROR_CODE_MAP.FORBIDDEN]: '권한이 없습니다.',
   [ERROR_CODE_MAP.EVENT_NOT_FOUND]: '이벤트를 찾을 수 없습니다.',
+  [ERROR_CODE_MAP.EVENT_STATE_UPDATE_NOT_ALLOWED]:
+    '이벤트 상태를 변경할 수 없습니다.',
 } as const;

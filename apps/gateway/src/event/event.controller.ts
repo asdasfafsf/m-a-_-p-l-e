@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -35,6 +36,7 @@ import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { EventsDto } from './dto/events.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
+import { UpdateEventStateDto } from './dto/update-event-state.dto';
 import { EventService } from './event.service';
 @Controller('api/v1/event')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -222,8 +224,8 @@ export class EventController {
     },
   })
   @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: '이벤트 보상 등록 성공',
+    status: HttpStatus.OK,
+    description: '이벤트 보상 삭제 성공',
     type: ResponseDto,
   })
   @ApiBearerAuth()
@@ -244,5 +246,37 @@ export class EventController {
       eventUuid,
       rewardUuid,
     });
+  }
+
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: '이벤트를 찾을 수 없습니다.',
+    schema: {
+      example: {
+        code: ERROR_CODE_MAP.EVENT_NOT_FOUND,
+        message: ERROR_MESSAGE_MAP.EVENT_NOT_FOUND,
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '이벤트 상태 변경 성공',
+    type: ResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiOperationWithRoles(
+    {
+      summary: '이벤트 상태 변경',
+    },
+    [ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR],
+  )
+  @HttpCode(HttpStatus.OK)
+  @Patch('/:eventUuid/state')
+  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
+  async updateEventState(
+    @Param('eventUuid') eventUuid: string,
+    @Body() body: UpdateEventStateDto,
+  ) {
+    return this.eventService.updateEventState({ eventUuid, state: body.state });
   }
 }

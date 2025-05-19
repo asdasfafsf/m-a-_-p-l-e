@@ -101,6 +101,27 @@ export class EventService {
     }
   }
 
+  async updateEventState({
+    eventUuid,
+    state,
+  }: {
+    eventUuid: string;
+    state: string;
+  }) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.patch(
+          `${this.eventServerConfig.url}/api/v1/event/${eventUuid}/state`,
+          { state },
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      await this.handleError(error);
+    }
+  }
+
   async handleError(error: any) {
     if (error instanceof AxiosError) {
       const errorData = error.response?.data;

@@ -28,7 +28,6 @@ import { UsersService } from './users.service';
 @ApiBadRequestResponse()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('api/v1/users')
-@Roles(ROLE_MAP.ADMIN)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -58,6 +57,7 @@ export class UsersController {
     },
   })
   @Patch('role')
+  @Roles(ROLE_MAP.ADMIN)
   async updateUserRole(@Body() body: UpdateUserRoleDto) {
     return this.usersService.updateUserRole(body);
   }
@@ -88,6 +88,7 @@ export class UsersController {
     },
   })
   @Get('/')
+  @Roles(ROLE_MAP.ADMIN)
   async findManyUsers(@Query() query: FindManyUsersDto) {
     return this.usersService.findManyUsers(query);
   }
@@ -118,6 +119,7 @@ export class UsersController {
     },
   })
   @Patch('state')
+  @Roles(ROLE_MAP.ADMIN)
   async updateUserState(@Body() body: UpdateUserStateDto) {
     return this.usersService.updateUserState(body);
   }

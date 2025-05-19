@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { EventReward } from './event-reward.schema';
 
 export type UserRewardHistoryDocument = HydratedDocument<UserRewardHistory>;
 
@@ -12,7 +13,7 @@ export class UserRewardHistory {
   eventUuid: string;
 
   @Prop({})
-  rewardUuids: string[];
+  rewards: EventReward[];
 
   @Prop()
   success: boolean;
@@ -20,7 +21,7 @@ export class UserRewardHistory {
   @Prop({ required: false })
   claimedAt?: Date;
 
-  @Prop({ required: false })
+  @Prop({ required: false, default: '' })
   failedReason?: string;
 }
 
@@ -28,3 +29,4 @@ export const UserRewardHistorySchema =
   SchemaFactory.createForClass(UserRewardHistory);
 
 UserRewardHistorySchema.index({ userUuid: 1, eventUuid: 1 });
+UserRewardHistorySchema.index({ createdAt: 1 });

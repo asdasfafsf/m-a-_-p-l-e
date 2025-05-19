@@ -6,6 +6,8 @@ import { Model } from 'mongoose';
 import { EVENT_STATE_MAP } from './constants/event-state.constant';
 import { ClaimRewardDto } from './dto/claim-reward-dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { GetRewardHistoryMeQueryDto } from './dto/get-reward-history-me.dto';
+import { GetRewardHistoryQueryDto } from './dto/get-reward-history.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { EventNotFoundException } from './errors/EventNotFoundException';
@@ -185,7 +187,7 @@ export class EventService {
   }: ClaimRewardDto & { eventUuid: string }) {
     let success = false;
     let failedReason = '';
-    const claimedRewards: string[] = [];
+    const claimedRewards: EventReward[] = [];
 
     try {
       const event = await this.eventModel
@@ -260,7 +262,7 @@ export class EventService {
 
         if (doc) {
           claimed.push(reward);
-          claimedRewards.push(reward.uuid);
+          claimedRewards.push(reward);
         }
       }
 
@@ -273,10 +275,65 @@ export class EventService {
         userUuid,
         eventUuid,
         success,
-        rewardUuids: claimedRewards,
+        rewards: claimedRewards,
         claimedAt: success ? new Date() : undefined,
         failedReason: success ? undefined : failedReason,
       });
     }
+  }
+
+  async getRewardHistorys(
+    query: GetRewardHistoryMeQueryDto | GetRewardHistoryQueryDto,
+  ): Promise<{
+    currentPage: number;
+    totalPage: number;
+    totalCount: number;
+    rewardHistory: {
+      userUuid: string;
+      eventUuid: string;
+      createdAt: Date;
+      success: boolean;
+      claimedAt?: Date;
+      failedReason?: string;
+      rewards: EventReward[];
+    }[];
+  }> {
+    const { userUuid, eventUuid, page = 1, limit = 100 } = query;
+    const skip = (page - 1) * limit;
+
+    const findQuery: any = {};
+    if (userUuid) findQuery.userUuid = userUuid;
+    if (eventUuid) findQuery.eventUuid = eventUuid;
+
+    const total = await this.userRewardHistoryModel.countDocuments(findQuery);
+
+    const rewardHistory = await this.userRewardHistoryModel
+      .find(findQuery)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    return {
+      currentPage: page,
+      totalPage: Math.ceil(total / limit),
+      totalCount: total,
+      rewardHistory: rewardHistory.map(({ _id, __v, ...rest }) => {
+        return {
+          userUuid: rest.userUuid,
+          eventUuid: rest.eventUuid,
+          success: rest.success,
+          createdAt: (rest as any)?.createdAt,
+          claimedAt: rest?.claimedAt ?? null,
+          failedReason: rest?.failedReason ?? null,
+          rewards:
+            (rest as any)?.rewards?.map((el) => ({
+              ...el,
+              _id: undefined,
+              __v: undefined,
+            })) ?? [],
+        };
+      }),
+    };
   }
 }

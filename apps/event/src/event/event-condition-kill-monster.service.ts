@@ -45,7 +45,7 @@ export class EventConditionKillMonsterService
     if (!eventParticipant) {
       throw new MapleHttpException(
         {
-          code: 'NOT_FOUND',
+          code: 'EVENT_PARTICIPANT_NOT_FOUND',
           message: 'Event participant not found',
         },
         HttpStatus.NOT_FOUND,

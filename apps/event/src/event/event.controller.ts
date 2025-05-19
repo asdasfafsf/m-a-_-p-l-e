@@ -14,6 +14,8 @@ import {
 import { ClaimRewardDto } from './dto/claim-reward-dto';
 import { EventActionDto } from './dto/event-action.dto';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { GetRewardHistoryMeQueryDto } from './dto/get-reward-history-me.dto';
+import { GetRewardHistoryQueryDto } from './dto/get-reward-history.dto';
 import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { UpdateEventStateDto } from './dto/update-event-state.dto';
@@ -95,5 +97,17 @@ export class EventController {
     @Body() body: ClaimRewardDto,
   ) {
     return this.eventService.claimRewards({ ...body, eventUuid });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/reward/history/me')
+  async getRewardHistorysMe(@Query() query: GetRewardHistoryMeQueryDto) {
+    return this.eventService.getRewardHistorys(query);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/reward/history/admin')
+  async getRewardHistorysAdmin(@Query() query: GetRewardHistoryQueryDto) {
+    return this.eventService.getRewardHistorys(query);
   }
 }

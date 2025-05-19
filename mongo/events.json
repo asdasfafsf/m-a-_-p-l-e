@@ -1,0 +1,124 @@
+[
+  {
+    "_id": {
+      "$oid": "682b7ed12aeb8629cd0b3b6e"
+    },
+    "name": "주황버섯을 잡아요!",
+    "description": "주황버섯을 아주 많이 잡는 이벤트입니다.",
+    "state": "STARTED",
+    "startedAt": {
+      "$date": "2025-05-18T11:55:29.000Z"
+    },
+    "endedAt": {
+      "$date": "2030-05-30T11:55:29.000Z"
+    },
+    "condition": {
+      "type": "KILL_MONSTER",
+      "startedAt": {
+        "$date": "2025-05-18T11:55:29.000Z"
+      },
+      "endedAt": {
+        "$date": "2025-05-30T11:55:29.000Z"
+      },
+      "config": [
+        {
+          "monsterUuid": "123",
+          "monsterName": "주황버섯",
+          "killCount": 50000
+        },
+        {
+          "monsterUuid": "124",
+          "monsterName": "주황버섯2",
+          "killCount": 50000
+        }
+      ]
+    },
+    "rewards": [
+      {
+        "type": "ITEM",
+        "name": "눈물",
+        "count": 1,
+        "itemId": "1",
+        "_id": {
+          "$oid": "682b7ed12aeb8629cd0b3b6f"
+        },
+        "uuid": "0196e9e7-6092-7995-bb41-0c0eebc89628",
+        "createdAt": {
+          "$date": "2025-05-19T18:56:17.045Z"
+        },
+        "updatedAt": {
+          "$date": "2025-05-19T18:56:17.045Z"
+        }
+      }
+    ],
+    "uuid": "0196e9e7-6092-7995-bb41-0c0f7a9a8c01",
+    "createdAt": {
+      "$date": "2025-05-19T18:56:17.045Z"
+    },
+    "updatedAt": {
+      "$date": "2025-05-19T18:56:17.045Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "682b7edc2aeb8629cd0b3b71"
+    },
+    "name": "주황버섯을 잡아요!",
+    "description": "주황버섯을 아주 많이 잡는 이벤트입니다.",
+    "state": "PENDING",
+    "startedAt": {
+      "$date": "2025-05-18T11:55:29.000Z"
+    },
+    "endedAt": {
+      "$date": "2030-05-30T11:55:29.000Z"
+    },
+    "condition": {
+      "type": "KILL_MONSTER",
+      "startedAt": {
+        "$date": "2025-05-18T11:55:29.000Z"
+      },
+      "endedAt": {
+        "$date": "2025-05-30T11:55:29.000Z"
+      },
+      "config": [
+        {
+          "monsterUuid": "123",
+          "monsterName": "주황버섯",
+          "killCount": 50000
+        },
+        {
+          "monsterUuid": "124",
+          "monsterName": "주황버섯2",
+          "killCount": 50000
+        }
+      ]
+    },
+    "rewards": [
+      {
+        "type": "ITEM",
+        "name": "눈물",
+        "count": 1,
+        "itemId": "1",
+        "_id": {
+          "$oid": "682b7edc2aeb8629cd0b3b72"
+        },
+        "uuid": "0196e9e7-8c17-76c3-95a5-8e1b135f71ca",
+        "createdAt": {
+          "$date": "2025-05-19T18:56:28.183Z"
+        },
+        "updatedAt": {
+          "$date": "2025-05-19T18:56:28.183Z"
+        }
+      }
+    ],
+    "uuid": "0196e9e7-8c17-76c3-95a5-8e1c3d9e75a5",
+    "createdAt": {
+      "$date": "2025-05-19T18:56:28.184Z"
+    },
+    "updatedAt": {
+      "$date": "2025-05-19T18:56:28.184Z"
+    },
+    "__v": 0
+  }
+]

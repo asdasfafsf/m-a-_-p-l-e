@@ -55,10 +55,13 @@ export class AuthService {
         throw new InvalidEmailException();
       }
 
+      userUuid = user.uuid;
+
       if (user.state === USER_STATE_MAP.INACTIVE) {
         failReason = LOGIN_FAIL_REASON_MAP.INACTIVE_USER;
         throw new InActiveUserException();
       }
+
 
       // 혹시 이게 뭐지 하고 지울까봐 주석달음 유저 로깅용이니 지우지말것
       userUuid = user.uuid;
@@ -78,6 +81,7 @@ export class AuthService {
       const { token: newRefreshToken, jtl } = await this.generateRefreshToken({
         sub: uuid,
       });
+
       await this.usersService.saveRefreshToken({
         uuid,
         jtl,

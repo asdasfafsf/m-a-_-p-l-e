@@ -26,7 +26,7 @@ refreshToken은 아래와 같은 내용으로 서명됩니다.
 
 ## 토큰 저장 및 검증 방식
 
-- 리프레시 토큰 생성 시 uuidv4()로 생성된 고유한 JTL(JWT ID) 값이 포함됩니다.
+- 리프레시 토큰 생성 시 uuidv7()로 생성된 고유한 JTL(JWT ID) 값이 포함됩니다.
 - 이 JTL 값은 사용자 데이터베이스 레코드에 저장됩니다.
 - 리프레시 토큰이 재발급될 때마다 사용자의 JTL 값도 새로 업데이트됩니다.
 
@@ -46,7 +46,7 @@ sequenceDiagram
     Note over Client, AuthServer: 최초 로그인 시
 
     Client->>AuthServer: 로그인 요청 (이메일/비밀번호)
-    AuthServer->>Database: 사용자 인증 및 JTL 생성(uuidv4)
+    AuthServer->>Database: 사용자 인증 및 JTL 생성(uuidv7)
     Database-->>AuthServer: 사용자 정보 저장 (JTL 포함)
     AuthServer-->>Client: accessToken + refreshToken 발급
 

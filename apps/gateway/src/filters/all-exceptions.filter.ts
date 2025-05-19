@@ -1,17 +1,19 @@
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  BadRequestException,
+  Catch,
+  ExceptionFilter,
   HttpException,
-  Logger,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { ERROR_CODE_MAP } from '../common/errors/constants/error.constant';
 import { MapleHttpException } from '../common/errors/MapleHttpException';
+import { ErrorCode } from '../common/errors/types/error.type';
 import { MapleError } from '../common/errors/types/maple-error.type';
-import { RESPONSE_CODE_MAP } from '../common/constants/response-code.constant';
 
-@Catch(HttpException)
+@Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
@@ -30,21 +32,52 @@ export class AllExceptionsFilter implements ExceptionFilter {
       response.status(status).json({
         code,
         message,
+        data: null,
       });
 
       return;
     }
 
-    const message =
-      exception instanceof HttpException
-        ? exception.getResponse()
-        : '정의되지 않은 오류입니다.';
+    if (exception instanceof HttpException) {
+      const exceptionResponse = exception.getResponse();
+      const message =
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : (exceptionResponse as any).message;
 
-    const responseBody = {
-      code: RESPONSE_CODE_MAP.ERROR,
-      message,
-    } as MapleError;
+      let code: ErrorCode = ERROR_CODE_MAP.ERROR;
+      if (exception instanceof BadRequestException) {
+        code = ERROR_CODE_MAP.INVALID_REQUEST;
+      }
 
-    response.status(status).json(responseBody);
+      if (
+        typeof message === 'string' ||
+        (message && message.toString() === message)
+      ) {
+        response.status(status).json({
+          code,
+          message,
+          data: null,
+        });
+
+        return;
+      }
+
+      if (Array.isArray(message)) {
+        response.status(status).json({
+          code,
+          message: message[0],
+          data: null,
+        } as MapleError);
+
+        return;
+      }
+    }
+
+    response.status(status).json({
+      code: 'ERROR',
+      message: '정의되지 않은 오류입니다.',
+      data: null,
+    });
   }
 }

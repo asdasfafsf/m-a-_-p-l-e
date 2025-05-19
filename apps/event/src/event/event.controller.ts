@@ -76,6 +76,7 @@ export class EventController {
     return this.eventService.updateEventState({ eventUuid, state: body.state });
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('/action')
   async doAction(@Body() body: EventActionDto) {
     const action = this.eventActionFactory.getAction(body.type);

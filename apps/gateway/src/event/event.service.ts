@@ -81,6 +81,26 @@ export class EventService {
     }
   }
 
+  async deleteEventReward({
+    eventUuid,
+    rewardUuid,
+  }: {
+    eventUuid: string;
+    rewardUuid: string;
+  }) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.delete(
+          `${this.eventServerConfig.url}/api/v1/event/${eventUuid}/reward/${rewardUuid}`,
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      await this.handleError(error);
+    }
+  }
+
   async handleError(error: any) {
     if (error instanceof AxiosError) {
       const errorData = error.response?.data;

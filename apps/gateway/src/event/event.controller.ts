@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -207,6 +208,41 @@ export class EventController {
     return this.eventService.registerEventReward({
       ...body,
       eventUuid,
+    });
+  }
+
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: '이벤트를 찾을 수 없습니다.',
+    schema: {
+      example: {
+        code: ERROR_CODE_MAP.EVENT_NOT_FOUND,
+        message: ERROR_MESSAGE_MAP.EVENT_NOT_FOUND,
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '이벤트 보상 등록 성공',
+    type: ResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiOperationWithRoles(
+    {
+      summary: '이벤트 보상 삭제',
+    },
+    [ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR],
+  )
+  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
+  @HttpCode(HttpStatus.OK)
+  @Delete('/:eventUuid/reward/:rewardUuid')
+  async deleteEventReward(
+    @Param('eventUuid') eventUuid: string,
+    @Param('rewardUuid') rewardUuid: string,
+  ) {
+    return this.eventService.deleteEventReward({
+      eventUuid,
+      rewardUuid,
     });
   }
 }

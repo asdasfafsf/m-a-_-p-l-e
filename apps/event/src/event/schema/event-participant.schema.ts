@@ -3,8 +3,12 @@ import { HydratedDocument } from 'mongoose';
 import { uuidv7 } from 'uuidv7';
 import { EventParticipantCondition } from './event-participant-condition.schema';
 
-type ClaimedReward = {
+export type ClaimedReward = {
   rewardUuid: string;
+  type: string;
+  name: string;
+  count: number;
+  itemId: string;
   claimedAt: Date;
 };
 
@@ -32,7 +36,11 @@ export class EventParticipant {
     type: [
       {
         rewardUuid: { type: String, required: true },
-        claimedAt: { type: Date, required: true },
+        type: { type: String, required: true },
+        name: { type: String, required: true },
+        count: { type: Number, required: true },
+        itemId: { type: String, required: true },
+        claimedAt: { type: Date, required: false },
       },
     ],
     default: [],

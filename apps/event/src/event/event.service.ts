@@ -221,7 +221,7 @@ export class EventService {
   }: ClaimRewardDto & { eventUuid: string }) {
     let success = false;
     let failedReason = '';
-    const claimedRewards: EventReward[] = [];
+    const claimed = [];
 
     try {
       const event = await this.eventModel
@@ -278,7 +278,7 @@ export class EventService {
         );
       }
       const now = new Date();
-      const claimed = [];
+
       for (const reward of unClaimedRewards) {
         const doc = await this.eventParticipantModel.findOneAndUpdate(
           {
@@ -288,15 +288,28 @@ export class EventService {
           },
           {
             $push: {
-              claimedRewards: { rewardUuid: reward.uuid, claimedAt: now },
+              claimedRewards: {
+                ...reward,
+                rewardUuid: reward.uuid,
+                claimedAt: now,
+                uuid: undefined,
+                _id: undefined,
+                __v: undefined,
+              },
             },
           },
           { new: true },
         );
 
         if (doc) {
-          claimed.push(reward);
-          claimedRewards.push(reward);
+          claimed.push({
+            ...reward,
+            rewardUuid: reward.uuid,
+            uuid: undefined,
+            _id: undefined,
+            __v: undefined,
+            claimedAt: now,
+          });
         }
       }
 
@@ -309,7 +322,7 @@ export class EventService {
         userUuid,
         eventUuid,
         success,
-        rewards: claimedRewards,
+        rewards: claimed,
         claimedAt: success ? new Date() : undefined,
         failedReason: success ? undefined : failedReason,
       });

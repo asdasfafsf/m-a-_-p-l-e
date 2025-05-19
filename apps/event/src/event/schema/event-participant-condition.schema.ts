@@ -21,10 +21,15 @@ export class EventParticipantCondition {
   @Prop({ required: false })
   completedAt?: Date;
 
-  @Prop({ required: true, type: [Object] })
+  @Prop({ required: true, type: Object })
   config: any;
 }
 
 export const EventParticipantConditionSchema = SchemaFactory.createForClass(
   EventParticipantCondition,
+);
+
+EventParticipantConditionSchema.index(
+  { eventUuid: 1, userUuid: 1 },
+  { unique: true },
 );

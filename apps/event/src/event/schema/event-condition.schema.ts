@@ -21,7 +21,7 @@ export class EventCondition {
   updatedAt: Date;
 
   @Prop({ required: true, type: Object })
-  config: Record<string, any>;
+  config: any;
 }
 
 export const EventConditionSchema =

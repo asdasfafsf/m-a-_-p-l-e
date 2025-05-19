@@ -4,26 +4,32 @@ import { ResponseDto } from '../../common/dto/response.dto';
 
 export const ApiResponseDto = <TModel extends Type<any>>(
   status: number,
-  model: TModel,
+  model?: TModel,
 ) => {
-  return applyDecorators(
-    ApiExtraModels(ResponseDto, model),
+  const decorators = [];
+
+  decorators.push(ApiExtraModels(ResponseDto));
+  if (model) decorators.push(ApiExtraModels(model));
+
+  decorators.push(
     ApiResponse({
       status,
       schema: {
         allOf: [
-          {
-            $ref: getSchemaPath(ResponseDto),
-          },
-          {
-            properties: {
-              data: {
-                $ref: getSchemaPath(model),
-              },
-            },
-          },
+          { $ref: getSchemaPath(ResponseDto) },
+          ...(model
+            ? [
+                {
+                  properties: {
+                    data: { $ref: getSchemaPath(model) },
+                  },
+                },
+              ]
+            : []),
         ],
       },
     }),
   );
+
+  return applyDecorators(...decorators);
 };

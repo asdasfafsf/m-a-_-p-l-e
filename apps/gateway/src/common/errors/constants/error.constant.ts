@@ -10,6 +10,7 @@ export const ERROR_CODE_MAP = {
   INVALID_REQUEST: 'INVALID_REQUEST',
   INACTIVE_USER: 'INACTIVE_USER',
   FORBIDDEN: 'FORBIDDEN',
+  EVENT_NOT_FOUND: 'EVENT_NOT_FOUND',
 } as const;
 
 export const ERROR_MESSAGE_MAP = {
@@ -24,4 +25,5 @@ export const ERROR_MESSAGE_MAP = {
   [ERROR_CODE_MAP.INVALID_REQUEST]: '유효하지 않은 요청입니다.',
   [ERROR_CODE_MAP.INACTIVE_USER]: '비활성화된 유저입니다.',
   [ERROR_CODE_MAP.FORBIDDEN]: '권한이 없습니다.',
+  [ERROR_CODE_MAP.EVENT_NOT_FOUND]: '이벤트를 찾을 수 없습니다.',
 } as const;

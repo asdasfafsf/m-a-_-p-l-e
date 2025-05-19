@@ -10,6 +10,7 @@ import {
 } from '../common/errors/constants/error.constant';
 import { EventServerConfig } from '../config/eventServerConfig';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
+import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 
 @Injectable()
@@ -54,6 +55,23 @@ export class EventService {
       const response = await lastValueFrom(
         this.httpService.get(
           `${this.eventServerConfig.url}/api/v1/event/${eventUuid}`,
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      await this.handleError(error);
+    }
+  }
+
+  async registerEventReward(
+    body: RegisterEventRewardDto & { eventUuid: string },
+  ) {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.post(
+          `${this.eventServerConfig.url}/api/v1/event/${body.eventUuid}/reward`,
+          body,
         ),
       );
 

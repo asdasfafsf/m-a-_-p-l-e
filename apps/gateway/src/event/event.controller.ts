@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Post,
   Put,
   Query,
   UseGuards,
@@ -19,6 +20,11 @@ import { ROLE_MAP } from '../auth/constants/role.constant';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
+import { ResponseDto } from '../common/dto/response.dto';
+import {
+  ERROR_CODE_MAP,
+  ERROR_MESSAGE_MAP,
+} from '../common/errors/constants/error.constant';
 import { ApiBadRequestResponse } from '../swagger/decorators/api-bad-request-response.decorator';
 import { ApiForbiddenResponse } from '../swagger/decorators/api-forbidden-response.decorator';
 import { ApiResponseDto } from '../swagger/decorators/api-response-dto.decorator';
@@ -26,6 +32,7 @@ import { ApiOperationWithRoles } from '../swagger/decorators/api-roles.decorator
 import { ApiUnauthorizedResponse } from '../swagger/decorators/api-unauthorized-response.decorator';
 import { EventQueryFilterDto } from './dto/event-query-filter.dto';
 import { EventsDto } from './dto/events.dto';
+import { RegisterEventRewardDto } from './dto/register-event-reward.dto';
 import { RegisterEventDto } from './dto/register-event.dto';
 import { EventService } from './event.service';
 @Controller('api/v1/event')
@@ -105,16 +112,14 @@ export class EventController {
     return this.eventService.getEvents(query);
   }
 
-  @Get('/:uuid')
-  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '이벤트 상세 조회' })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: '이벤트 조회 실패',
     schema: {
       example: {
-        code: 'EVENT_NOT_FOUND',
-        message: '이벤트를 찾을 수 없습니다.',
+        code: ERROR_CODE_MAP.EVENT_NOT_FOUND,
+        message: ERROR_MESSAGE_MAP.EVENT_NOT_FOUND,
       },
     },
   })
@@ -164,7 +169,44 @@ export class EventController {
       },
     },
   })
+  @HttpCode(HttpStatus.OK)
+  @Get('/:uuid')
   async getEvent(@Param('uuid') uuid: string) {
     return this.eventService.getEvent(uuid);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: '이벤트를 찾을 수 없습니다.',
+    schema: {
+      example: {
+        code: ERROR_CODE_MAP.EVENT_NOT_FOUND,
+        message: ERROR_MESSAGE_MAP.EVENT_NOT_FOUND,
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '이벤트 보상 등록 성공',
+    type: ResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiOperationWithRoles(
+    {
+      summary: '이벤트 보상 등록',
+    },
+    [ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR],
+  )
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/:eventUuid/reward')
+  @Roles(ROLE_MAP.ADMIN, ROLE_MAP.OPERATOR)
+  async registerEventReward(
+    @Param('eventUuid') eventUuid: string,
+    @Body() body: RegisterEventRewardDto,
+  ) {
+    return this.eventService.registerEventReward({
+      ...body,
+      eventUuid,
+    });
   }
 }

@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { REWARD_TYPE_MAP } from '../constants/event.reward.constant';
 import { EventRewardType } from '../types/event-reward.type';
 
@@ -13,21 +13,27 @@ export class RegisterEventRewardDto {
   @IsNotEmpty()
   type: EventRewardType;
 
-  @ApiProperty({ example: '에픽 상자', description: '보상 이름' })
+  @ApiProperty({
+    example: '에픽 상자',
+    description: '보상 이름',
+  })
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 10, description: '보상 수량' })
+  @ApiProperty({
+    example: 10,
+    description: '보상 수량',
+    minimum: 1,
+  })
   @IsNumber()
   @IsNotEmpty()
   count: number;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: 'item-abc123',
-    description: '아이템 ID (type이 ITEM일 때만 사용)',
+    description: '해당 보상의 고유식별자',
   })
   @IsString()
-  @IsOptional()
-  itemId?: string;
+  itemId: string;
 }
